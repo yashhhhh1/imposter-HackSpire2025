@@ -15,6 +15,8 @@ function Dashboard() {
       {/* <h1>Dashboard</h1> */}
       <EnhancedMentalHealthDashboard userId={user.uid} />
       {/* qkj */}
+
+      
     </div>
   );
 }
