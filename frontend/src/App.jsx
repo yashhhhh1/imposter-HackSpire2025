@@ -13,6 +13,8 @@ import AuthProvider from "./Context/AuthProvider";
 function App() {
   return (
     <AuthProvider>
+      <Navbar />
+      {/* <div className="container mx-auto"> */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />

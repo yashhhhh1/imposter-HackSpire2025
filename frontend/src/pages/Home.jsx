@@ -1,3 +1,4 @@
+import Benefits from "../components/Benifit";
 import { Features } from "../components/Feature";
 import { FeelingCheck } from "../components/FeelingCheck";
 import Footer from "../components/Footer";
@@ -8,7 +9,8 @@ const Home = () => {
     <>
       <Hero />
       <Features />
-      <FeelingCheck />
+      {/* <FeelingCheck /> */}
+      <Benefits/>
       <Footer/>
     </>
   );
