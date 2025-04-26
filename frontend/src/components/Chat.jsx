@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import axios from "axios";
+import { AuthContext } from "../Context/AuthProvider";
 
 const Chat = ({ darkMode }) => {
+  const { user } = useContext(AuthContext);
   const apiKey = import.meta.env.VITE_API_KEY;
   const chatContainerRef = useRef(null);
 
@@ -25,57 +27,76 @@ const Chat = ({ darkMode }) => {
     "Which three emotions would you invite to your table today, and what would you talk about? 🍽️",
     "Are you feeling more like an explorer, a dreamer, a fighter, or a healer today? 🌍",
     "If your day had a scent, a taste, and a sound—what would they be? 🌸🍫🎵",
-    "How's the landscape inside you looking today—mountains to climb, rivers to cross, or cozy cabins to rest in? 🏔️"
+    "How's the landscape inside you looking today—mountains to climb, rivers to cross, or cozy cabins to rest in? 🏔️",
   ];
 
   const emotionToGenreMap = {
-    "happy": { movie: "Comedy", music: "pop", book: "humor" },
-    "excited": { movie: "Adventure", music: "upbeat", book: "fantasy" },
-    "peaceful": { movie: "Documentary", music: "ambient", book: "poetry" },
-    "grateful": { movie: "Biography", music: "classical", book: "memoir" },
-    "optimistic": { movie: "Family", music: "folk", book: "self-help" },
-    "content": { movie: "Comedy", music: "acoustic", book: "travel" },
-    "hopeful": { movie: "Fantasy", music: "indie", book: "spiritual" },
-    "inspired": { movie: "Biography", music: "instrumental", book: "philosophy" },
-    "loved": { movie: "Romance", music: "love songs", book: "romance" },
-    "sad": { movie: "Comedy", music: "ballad", book: "literary fiction" },
-    "anxious": { movie: "Comedy", music: "lo-fi", book: "mindfulness" },
-    "stressed": { movie: "Animation", music: "meditation", book: "self-care" },
-    "angry": { movie: "Action", music: "rock", book: "thriller" },
-    "depressed": { movie: "Drama", music: "hopeful", book: "uplifting" },
-    "overwhelmed": { movie: "Animation", music: "calming", book: "short stories" },
-    "lonely": { movie: "Drama", music: "singer-songwriter", book: "coming-of-age" },
-    "frustrated": { movie: "Sci-Fi", music: "alternative", book: "adventure" },
-    "tired": { movie: "Family", music: "gentle", book: "audiobook" },
-    "reflective": { movie: "Drama", music: "jazz", book: "essays" },
-    "nostalgic": { movie: "History", music: "oldies", book: "historical fiction" },
-    "confused": { movie: "Mystery", music: "experimental", book: "fantasy" },
-    "curious": { movie: "Documentary", music: "world", book: "non-fiction" },
-    "bored": { movie: "Thriller", music: "new genres", book: "mystery" },
-    "neutral": { movie: "Action", music: "playlists", book: "bestsellers" }
+    happy: { movie: "Comedy", music: "pop", book: "humor" },
+    excited: { movie: "Adventure", music: "upbeat", book: "fantasy" },
+    peaceful: { movie: "Documentary", music: "ambient", book: "poetry" },
+    grateful: { movie: "Biography", music: "classical", book: "memoir" },
+    optimistic: { movie: "Family", music: "folk", book: "self-help" },
+    content: { movie: "Comedy", music: "acoustic", book: "travel" },
+    hopeful: { movie: "Fantasy", music: "indie", book: "spiritual" },
+    inspired: { movie: "Biography", music: "instrumental", book: "philosophy" },
+    loved: { movie: "Romance", music: "love songs", book: "romance" },
+    sad: { movie: "Comedy", music: "ballad", book: "literary fiction" },
+    anxious: { movie: "Comedy", music: "lo-fi", book: "mindfulness" },
+    stressed: { movie: "Animation", music: "meditation", book: "self-care" },
+    angry: { movie: "Action", music: "rock", book: "thriller" },
+    depressed: { movie: "Drama", music: "hopeful", book: "uplifting" },
+    overwhelmed: {
+      movie: "Animation",
+      music: "calming",
+      book: "short stories",
+    },
+    lonely: {
+      movie: "Drama",
+      music: "singer-songwriter",
+      book: "coming-of-age",
+    },
+    frustrated: { movie: "Sci-Fi", music: "alternative", book: "adventure" },
+    tired: { movie: "Family", music: "gentle", book: "audiobook" },
+    reflective: { movie: "Drama", music: "jazz", book: "essays" },
+    nostalgic: {
+      movie: "History",
+      music: "oldies",
+      book: "historical fiction",
+    },
+    confused: { movie: "Mystery", music: "experimental", book: "fantasy" },
+    curious: { movie: "Documentary", music: "world", book: "non-fiction" },
+    bored: { movie: "Thriller", music: "new genres", book: "mystery" },
+    neutral: { movie: "Action", music: "playlists", book: "bestsellers" },
   };
 
   const getRandomQuestion = () => {
-    const randomIndex = Math.floor(Math.random() * emotionalCheckInQuestions.length);
+    const randomIndex = Math.floor(
+      Math.random() * emotionalCheckInQuestions.length
+    );
     return emotionalCheckInQuestions[randomIndex];
   };
 
   const [messages, setMessages] = useState([
     {
       sender: "MindMosaic AI",
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       text: getRandomQuestion(),
       showButtons: false,
-    }
+    },
   ]);
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [emotionDetected, setEmotionDetected] = useState(false);
   const [currentEmotion, setCurrentEmotion] = useState("neutral");
-  const [showMovieRecommendations, setShowMovieRecommendations] = useState(false);
+  const [showMovieRecommendations, setShowMovieRecommendations] =
+    useState(false);
   const [movieRecommendations, setMovieRecommendations] = useState([]);
   const [loadingMovies, setLoadingMovies] = useState(false);
-  const [showMusicRecommendations, setShowMusicRecommendations] = useState(false);
+  const [showMusicRecommendations, setShowMusicRecommendations] =
+    useState(false);
   const [musicRecommendations, setMusicRecommendations] = useState([]);
   const [loadingMusic, setLoadingMusic] = useState(false);
   const [showBookRecommendations, setShowBookRecommendations] = useState(false);
@@ -84,57 +105,144 @@ const Chat = ({ darkMode }) => {
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
-  }, [messages, showMovieRecommendations, showMusicRecommendations, showBookRecommendations]);
+  }, [
+    messages,
+    showMovieRecommendations,
+    showMusicRecommendations,
+    showBookRecommendations,
+  ]);
 
   const detectEmotion = (text) => {
     text = text.toLowerCase();
     for (const emotion in emotionToGenreMap) {
-      const pattern = new RegExp(`\\b${emotion}\\b|\\b${emotion}ing\\b|\\b${emotion}ed\\b`);
+      const pattern = new RegExp(
+        `\\b${emotion}\\b|\\b${emotion}ing\\b|\\b${emotion}ed\\b`
+      );
       if (pattern.test(text)) {
         return emotion;
       }
     }
     const keywordToEmotion = {
-      "joy": "happy", "joyful": "happy", "pleased": "happy", "delighted": "happy",
-      "cheerful": "happy", "ecstatic": "happy", "contented": "content",
-      "gleeful": "happy", "overjoyed": "happy", "proud": "happy",
-      "inspired": "inspired", "motivated": "inspired", "confident": "happy",
-      "grateful": "grateful", "thankful": "grateful", "appreciated": "grateful",
-      "hope": "hopeful", "hopeful": "hopeful", "optimism": "optimistic",
-      "upset": "sad", "down": "sad", "gloomy": "sad", "blue": "sad",
-      "depressed": "depressed", "miserable": "sad", "devastated": "sad",
-      "heartbroken": "sad", "melancholy": "sad", "sorrow": "sad", "grief": "sad",
-      "grieve": "sad", "grieving": "sad", "loss": "sad", "bereaved": "sad",
-      "mourning": "sad", "hopeless": "depressed", "despair": "depressed",
-      "shame": "sad", "ashamed": "sad", "guilt": "sad", "regret": "sad",
-      "bitter": "angry", "resentful": "angry",
-      "furious": "angry", "irritated": "angry", "annoyed": "angry", "mad": "angry",
-      "enraged": "angry", "irritable": "angry",
-      "worried": "anxious", "nervous": "anxious", "tense": "anxious",
-      "restless": "anxious", "panicked": "anxious", "fear": "anxious",
-      "dread": "anxious", "anxiety": "anxious", "panic": "anxious",
-      "insecure": "anxious", "uncertain": "anxious", "uncertainty": "anxious",
-      "exhausted": "tired", "sleepy": "tired", "drained": "tired", "weary": "tired",
-      "fatigued": "tired", "burnout": "tired",
-      "alone": "lonely", "isolated": "lonely", "abandoned": "lonely",
-      "loneliness": "lonely", "desolate": "lonely", "unloved": "lonely",
-      "calm": "peaceful", "relaxed": "peaceful", "serene": "peaceful",
-      "tranquil": "peaceful", "relief": "peaceful", "comfort": "peaceful",
-      "enthusiastic": "excited", "eager": "excited", "thrilled": "excited",
-      "energized": "excited",
-      "breakup": "sad", "broke up": "sad", "break up": "sad", "heartbreak": "sad",
-      "heartbroken": "sad", "split": "sad", "divorce": "sad", "separated": "sad",
-      "rejection": "sad", "rejected": "sad", "abandon": "lonely",
-      "abandoned": "lonely", "abandonment": "lonely", "betray": "sad",
-      "betrayal": "sad", "cheated": "sad", "infidelity": "sad", "affair": "sad",
-      "stress": "stressed", "stressed": "stressed", "pressure": "stressed",
-      "overwhelm": "overwhelmed", "overwhelmed": "overwhelmed", "struggle": "stressed",
-      "struggling": "stressed", "battle": "stressed", "challenge": "stressed",
-      "trauma": "sad", "ptsd": "anxious", "crisis": "anxious", "addiction": "stressed",
-      "self-esteem": "anxious", "insecurity": "anxious", "phobia": "anxious",
-      "obsess": "anxious", "obsessed": "anxious"
+      joy: "happy",
+      joyful: "happy",
+      pleased: "happy",
+      delighted: "happy",
+      cheerful: "happy",
+      ecstatic: "happy",
+      contented: "content",
+      gleeful: "happy",
+      overjoyed: "happy",
+      proud: "happy",
+      inspired: "inspired",
+      motivated: "inspired",
+      confident: "happy",
+      grateful: "grateful",
+      thankful: "grateful",
+      appreciated: "grateful",
+      hope: "hopeful",
+      hopeful: "hopeful",
+      optimism: "optimistic",
+      upset: "sad",
+      down: "sad",
+      gloomy: "sad",
+      blue: "sad",
+      depressed: "depressed",
+      miserable: "sad",
+      devastated: "sad",
+      heartbroken: "sad",
+      melancholy: "sad",
+      sorrow: "sad",
+      grief: "sad",
+      grieve: "sad",
+      grieving: "sad",
+      loss: "sad",
+      bereaved: "sad",
+      mourning: "sad",
+      hopeless: "depressed",
+      despair: "depressed",
+      shame: "sad",
+      ashamed: "sad",
+      guilt: "sad",
+      regret: "sad",
+      bitter: "angry",
+      resentful: "angry",
+      furious: "angry",
+      irritated: "angry",
+      annoyed: "angry",
+      mad: "angry",
+      enraged: "angry",
+      irritable: "angry",
+      worried: "anxious",
+      nervous: "anxious",
+      tense: "anxious",
+      restless: "anxious",
+      panicked: "anxious",
+      fear: "anxious",
+      dread: "anxious",
+      anxiety: "anxious",
+      panic: "anxious",
+      insecure: "anxious",
+      uncertain: "anxious",
+      uncertainty: "anxious",
+      exhausted: "tired",
+      sleepy: "tired",
+      drained: "tired",
+      weary: "tired",
+      fatigued: "tired",
+      burnout: "tired",
+      alone: "lonely",
+      isolated: "lonely",
+      abandoned: "lonely",
+      loneliness: "lonely",
+      desolate: "lonely",
+      unloved: "lonely",
+      calm: "peaceful",
+      relaxed: "peaceful",
+      serene: "peaceful",
+      tranquil: "peaceful",
+      relief: "peaceful",
+      comfort: "peaceful",
+      enthusiastic: "excited",
+      eager: "excited",
+      thrilled: "excited",
+      energized: "excited",
+      breakup: "sad",
+      "broke up": "sad",
+      "break up": "sad",
+      heartbreak: "sad",
+      split: "sad",
+      divorce: "sad",
+      separated: "sad",
+      rejection: "sad",
+      rejected: "sad",
+      abandon: "lonely",
+      abandonment: "lonely",
+      betray: "sad",
+      betrayal: "sad",
+      cheated: "sad",
+      infidelity: "sad",
+      affair: "sad",
+      stress: "stressed",
+      stressed: "stressed",
+      pressure: "stressed",
+      overwhelm: "overwhelmed",
+      overwhelmed: "overwhelmed",
+      struggle: "stressed",
+      struggling: "stressed",
+      battle: "stressed",
+      challenge: "stressed",
+      trauma: "sad",
+      ptsd: "anxious",
+      crisis: "anxious",
+      addiction: "stressed",
+      "self-esteem": "anxious",
+      insecurity: "anxious",
+      phobia: "anxious",
+      obsess: "anxious",
+      obsessed: "anxious",
     };
     for (const keyword in keywordToEmotion) {
       if (text.includes(keyword)) {
@@ -148,51 +256,296 @@ const Chat = ({ darkMode }) => {
     text = text.toLowerCase();
     const mentalHealthKeywords = [
       ...Object.keys(emotionToGenreMap),
-      "joyful", "ecstatic", "contented", "gleeful", "miserable", "devastated",
-      "heartbroken", "melancholy", "irritable", "enraged", "restless", "nervous",
-      "panicked", "weary", "fatigued", "drained", "isolated", "desolate", "serene",
-      "tranquil", "thankful", "appreciated", "energized", "motivated", "hopeless",
-      "despair", "shame", "ashamed", "proud", "confident", "insecure", "jealous",
-      "envious", "overjoyed", "bitter", "resentful", "grateful", "inspired",
-      "feel", "feeling", "felt", "mood", "emotion", "emotional", "heart", "mind",
-      "soul", "vibe", "energy", "state", "inner", "sentimental", "sensitive",
-      "touched", "moved", "affected", "hurt", "pain", "ache", "worry", "fear",
-      "dread", "anguish", "relief", "comfort", "ease", "sorrow", "grief", "regret",
-      "guilt", "pride", "happiness", "sadness", "anger", "love", "hope", "calmness",
-      "excitement", "anxiety", "loneliness", "frustration", "confusion", "boredom",
-      "nostalgia", "curiosity", "empathy", "sympathy", "compassion",
-      "mental", "health", "wellness", "wellbeing", "well-being", "therapy",
-      "therapist", "counseling", "counsel", "counsellor", "psychology",
-      "psychological", "psychiatrist", "psychiatric", "support", "help", "care",
-      "cope", "coping", "manage", "managing", "struggle", "struggling", "battle",
-      "challenge", "healing", "heal", "recovery", "recover", "trauma", "ptsd",
-      "self-care", "selfcare", "mindfulness", "meditation", "relaxation", "balance",
-      "burnout", "exhaustion", "depression", "depressed", "anxiety", "anxious",
-      "panic", "attack", "crisis", "stress", "stressed", "overwhelm", "overwhelmed",
-      "resilience", "resilient", "motivation", "motivated", "unmotivated",
-      "self-esteem", "confidence", "insecurity", "phobia", "fearful", "obsess",
-      "obsessed", "addiction", "grieving", "bereavement",
-      "breakup", "broke up", "break up", "heartbreak", "heartbroken", "split",
-      "divorce", "separated", "separation", "marriage", "wedding", "engaged",
-      "engagement", "relationship", "partner", "spouse", "boyfriend", "girlfriend",
-      "husband", "wife", "lover", "ex", "friend", "friendship", "best friend",
-      "family", "parent", "mother", "father", "sibling", "brother", "sister",
-      "child", "son", "daughter", "relative", "loss", "lose", "lost", "death",
-      "died", "grieve", "grieving", "mourning", "bereaved", "rejection", "rejected",
-      "abandon", "abandoned", "abandonment", "betray", "betrayal", "cheated",
-      "trust", "distrust", "loneliness", "alone", "isolation", "isolated", "love",
-      "loved", "loving", "unloved", "attachment", "connection", "bond", "closeness",
-      "conflict", "fight", "argument", "disagreement", "reconcile", "forgive",
-      "forgiveness", "infidelity", "affair",
-      "job", "work", "career", "employment", "unemployed", "fired", "laid off",
-      "boss", "manager", "colleague", "coworker", "team", "workplace", "office",
-      "pressure", "deadline", "task", "project", "responsibility", "demand",
-      "failure", "failed", "mistake", "error", "success", "achieve", "achievement",
-      "goal", "dream", "aspiration", "ambition", "promotion", "demotion", "stress",
-      "stressed", "busy", "overloaded", "time management", "balance", "juggle",
-      "struggle", "struggling", "finance", "financial", "money", "debt", "broke",
-      "budget", "savings", "school", "study", "exam", "test", "grade", "education",
-      "college", "university", "future", "plan", "uncertain", "uncertainty"
+      "joyful",
+      "ecstatic",
+      "contented",
+      "gleeful",
+      "miserable",
+      "devastated",
+      "heartbroken",
+      "melancholy",
+      "irritable",
+      "enraged",
+      "restless",
+      "nervous",
+      "panicked",
+      "weary",
+      "fatigued",
+      "drained",
+      "isolated",
+      "desolate",
+      "serene",
+      "tranquil",
+      "thankful",
+      "appreciated",
+      "energized",
+      "motivated",
+      "hopeless",
+      "despair",
+      "shame",
+      "ashamed",
+      "proud",
+      "confident",
+      "insecure",
+      "jealous",
+      "envious",
+      "overjoyed",
+      "bitter",
+      "resentful",
+      "grateful",
+      "inspired",
+      "feel",
+      "feeling",
+      "felt",
+      "mood",
+      "emotion",
+      "emotional",
+      "heart",
+      "mind",
+      "soul",
+      "vibe",
+      "energy",
+      "state",
+      "inner",
+      "sentimental",
+      "sensitive",
+      "touched",
+      "moved",
+      "affected",
+      "hurt",
+      "pain",
+      "ache",
+      "worry",
+      "fear",
+      "dread",
+      "anguish",
+      "relief",
+      "comfort",
+      "ease",
+      "sorrow",
+      "grief",
+      "regret",
+      "guilt",
+      "pride",
+      "happiness",
+      "sadness",
+      "anger",
+      "love",
+      "hope",
+      "calmness",
+      "excitement",
+      "anxiety",
+      "loneliness",
+      "frustration",
+      "confusion",
+      "boredom",
+      "nostalgia",
+      "curiosity",
+      "empathy",
+      "sympathy",
+      "compassion",
+      "mental",
+      "health",
+      "wellness",
+      "wellbeing",
+      "well-being",
+      "therapy",
+      "therapist",
+      "counseling",
+      "counsel",
+      "counsellor",
+      "psychology",
+      "psychological",
+      "psychiatrist",
+      "psychiatric",
+      "support",
+      "help",
+      "care",
+      "cope",
+      "coping",
+      "manage",
+      "managing",
+      "struggle",
+      "struggling",
+      "battle",
+      "challenge",
+      "healing",
+      "heal",
+      "recovery",
+      "recover",
+      "trauma",
+      "ptsd",
+      "self-care",
+      "selfcare",
+      "mindfulness",
+      "meditation",
+      "relaxation",
+      "balance",
+      "burnout",
+      "exhaustion",
+      "depression",
+      "depressed",
+      "anxiety",
+      "anxious",
+      "panic",
+      "attack",
+      "crisis",
+      "stress",
+      "stressed",
+      "overwhelm",
+      "overwhelmed",
+      "resilience",
+      "resilient",
+      "motivation",
+      "motivated",
+      "unmotivated",
+      "self-esteem",
+      "confidence",
+      "insecurity",
+      "phobia",
+      "fearful",
+      "obsess",
+      "obsessed",
+      "addiction",
+      "grieving",
+      "bereavement",
+      "breakup",
+      "broke up",
+      "break up",
+      "heartbreak",
+      "heartbroken",
+      "split",
+      "divorce",
+      "separated",
+      "separation",
+      "marriage",
+      "wedding",
+      "engaged",
+      "engagement",
+      "relationship",
+      "partner",
+      "spouse",
+      "boyfriend",
+      "girlfriend",
+      "husband",
+      "wife",
+      "lover",
+      "ex",
+      "friend",
+      "friendship",
+      "best friend",
+      "family",
+      "parent",
+      "mother",
+      "father",
+      "sibling",
+      "brother",
+      "sister",
+      "child",
+      "son",
+      "daughter",
+      "relative",
+      "loss",
+      "lose",
+      "lost",
+      "death",
+      "died",
+      "grieve",
+      "grieving",
+      "mourning",
+      "bereaved",
+      "rejection",
+      "rejected",
+      "abandon",
+      "abandoned",
+      "abandonment",
+      "betray",
+      "betrayal",
+      "cheated",
+      "trust",
+      "distrust",
+      "loneliness",
+      "alone",
+      "isolation",
+      "isolated",
+      "love",
+      "loved",
+      "loving",
+      "unloved",
+      "attachment",
+      "connection",
+      "bond",
+      "closeness",
+      "conflict",
+      "fight",
+      "argument",
+      "disagreement",
+      "reconcile",
+      "forgive",
+      "forgiveness",
+      "infidelity",
+      "affair",
+      "job",
+      "work",
+      "career",
+      "employment",
+      "unemployed",
+      "fired",
+      "laid off",
+      "boss",
+      "manager",
+      "colleague",
+      "coworker",
+      "team",
+      "workplace",
+      "office",
+      "pressure",
+      "deadline",
+      "task",
+      "project",
+      "responsibility",
+      "demand",
+      "failure",
+      "failed",
+      "mistake",
+      "error",
+      "success",
+      "achieve",
+      "achievement",
+      "goal",
+      "dream",
+      "aspiration",
+      "ambition",
+      "promotion",
+      "demotion",
+      "stress",
+      "stressed",
+      "busy",
+      "overloaded",
+      "time management",
+      "balance",
+      "juggle",
+      "struggle",
+      "struggling",
+      "finance",
+      "financial",
+      "money",
+      "debt",
+      "broke",
+      "budget",
+      "savings",
+      "school",
+      "study",
+      "exam",
+      "test",
+      "grade",
+      "education",
+      "college",
+      "university",
+      "future",
+      "plan",
+      "uncertain",
+      "uncertainty",
     ];
     return mentalHealthKeywords.some((keyword) => text.includes(keyword));
   };
@@ -201,19 +554,20 @@ const Chat = ({ darkMode }) => {
     setLoadingMovies(true);
     try {
       const options = {
-        method: 'GET',
-        url: 'https://imdb236.p.rapidapi.com/imdb/search',
+        method: "GET",
+        url: "https://imdb236.p.rapidapi.com/imdb/search",
         params: {
-          type: 'movie',
+          type: "movie",
           genre: genre,
-          rows: '3',
-          sortOrder: 'ASC',
-          sortField: 'id'
+          rows: "3",
+          sortOrder: "ASC",
+          sortField: "id",
         },
         headers: {
-          'x-rapidapi-key': '064e5cdf15msha2b994f0da22a49p107ebajsnaea164ace7a2',
-          'x-rapidapi-host': 'imdb236.p.rapidapi.com'
-        }
+          "x-rapidapi-key":
+            "064e5cdf15msha2b994f0da22a49p107ebajsnaea164ace7a2",
+          "x-rapidapi-host": "imdb236.p.rapidapi.com",
+        },
       };
       const response = await axios.request(options);
       console.log("Movie API response:", response.data);
@@ -305,7 +659,9 @@ const Chat = ({ darkMode }) => {
         prompt = `You are MindMosaic AI, a mental health assistant dedicated to improving the user's emotional wellness.
                   Previous conversation: ${JSON.stringify(messages)}
                   User message: ${messageText}
-                  The user seems to be feeling ${currentEmotion || detectedEmotion}, possibly due to a life event or emotional state (e.g., breakup, stress, loss).
+                  The user seems to be feeling ${
+                    currentEmotion || detectedEmotion
+                  }, possibly due to a life event or emotional state (e.g., breakup, stress, loss).
                   Provide a warm, empathetic response that acknowledges their feelings and any mentioned life events.
                   Offer gentle suggestions for activities (e.g., watching a movie, listening to music, reading a book, or self-care practices) that could support their well-being and align with their mood.
                   Keep the response concise, supportive, and uplifting, ending with an encouraging invitation to share more or try a suggested activity.`;
@@ -501,7 +857,7 @@ const Chat = ({ darkMode }) => {
           darkMode ? "text-white" : "text-gray-800"
         }`}
       >
-        Hi, Yash Patel
+        Hi,{JSON.stringify(user.displayName)}
       </h1>
       <div className="w-full">
         <div
@@ -587,9 +943,7 @@ const Chat = ({ darkMode }) => {
               >
                 <div
                   className={`w-4 h-4 border-2 rounded-full animate-spin ${
-                    darkMode
-                      ? "border-t-violet-400"
-                      : "border-t-violet-500"
+                    darkMode ? "border-t-violet-400" : "border-t-violet-500"
                   }`}
                 ></div>
                 <p
@@ -618,9 +972,7 @@ const Chat = ({ darkMode }) => {
                   <div className="flex items-center space-x-2 py-2">
                     <div
                       className={`w-4 h-4 border-2 rounded-full animate-spin ${
-                        darkMode
-                          ? "border-t-blue-400"
-                          : "border-t-blue-500"
+                        darkMode ? "border-t-blue-400" : "border-t-blue-500"
                       }`}
                     ></div>
                     <p
@@ -634,17 +986,19 @@ const Chat = ({ darkMode }) => {
                 ) : movieRecommendations.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {movieRecommendations.map((movie, idx) => (
-                      <div 
-                        key={idx} 
+                      <div
+                        key={idx}
                         className={`p-2 rounded border ${
-                          darkMode ? "bg-gray-700 border-gray-500" : "bg-white border-gray-300"
+                          darkMode
+                            ? "bg-gray-700 border-gray-500"
+                            : "bg-white border-gray-300"
                         }`}
                       >
                         <div className="aspect-w-3 aspect-h-4 mb-2">
-                          {(movie.image || movie.poster) ? (
-                            <img 
-                              src={movie.image || movie.poster} 
-                              alt={movie.name || movie.title || "Movie poster"} 
+                          {movie.image || movie.poster ? (
+                            <img
+                              src={movie.image || movie.poster}
+                              alt={movie.name || movie.title || "Movie poster"}
                               className="w-full h-32 object-cover rounded"
                               onError={(e) => {
                                 e.target.onerror = null;
@@ -657,10 +1011,17 @@ const Chat = ({ darkMode }) => {
                             </div>
                           )}
                         </div>
-                        <h3 className="font-bold text-sm">{movie.name || movie.title || "Unknown Title"}</h3>
+                        <h3 className="font-bold text-sm">
+                          {movie.name || movie.title || "Unknown Title"}
+                        </h3>
                         <p className="text-xs mt-1">
-                          {(movie.description || movie.overview)?.substring(0, 50) || "No description available"}
-                          {(movie.description || movie.overview)?.length > 50 ? "..." : ""}
+                          {(movie.description || movie.overview)?.substring(
+                            0,
+                            50
+                          ) || "No description available"}
+                          {(movie.description || movie.overview)?.length > 50
+                            ? "..."
+                            : ""}
                         </p>
                         <div className="flex items-center mt-2">
                           <span className="text-yellow-500">★</span>
@@ -724,17 +1085,19 @@ const Chat = ({ darkMode }) => {
                 ) : musicRecommendations.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {musicRecommendations.map((track, idx) => (
-                      <div 
-                        key={idx} 
+                      <div
+                        key={idx}
                         className={`p-2 rounded border ${
-                          darkMode ? "bg-gray-700 border-gray-500" : "bg-white border-gray-300"
+                          darkMode
+                            ? "bg-gray-700 border-gray-500"
+                            : "bg-white border-gray-300"
                         }`}
                       >
                         <div className="aspect-w-3 aspect-h-4 mb-2">
                           {track.image ? (
-                            <img 
-                              src={track.image} 
-                              alt={track.name || "Track cover"} 
+                            <img
+                              src={track.image}
+                              alt={track.name || "Track cover"}
                               className="w-full h-32 object-cover rounded"
                               onError={(e) => {
                                 e.target.onerror = null;
@@ -747,15 +1110,22 @@ const Chat = ({ darkMode }) => {
                             </div>
                           )}
                         </div>
-                        <h3 className="font-bold text-sm">{track.name || "Unknown Track"}</h3>
-                        <p className="text-xs mt-1">{track.artist_name || "Unknown Artist"}</p>
-                        <p className="text-xs">{track.album_name || "Unknown Album"}</p>
+                        <h3 className="font-bold text-sm">
+                          {track.name || "Unknown Track"}
+                        </h3>
+                        <p className="text-xs mt-1">
+                          {track.artist_name || "Unknown Artist"}
+                        </p>
+                        <p className="text-xs">
+                          {track.album_name || "Unknown Album"}
+                        </p>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <p className="text-sm italic">
-                    No music recommendations found. Try a different mood or category.
+                    No music recommendations found. Try a different mood or
+                    category.
                   </p>
                 )}
                 <div className="mt-3 flex justify-end">
@@ -803,17 +1173,19 @@ const Chat = ({ darkMode }) => {
                 ) : bookRecommendations.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {bookRecommendations.map((book, idx) => (
-                      <div 
-                        key={idx} 
+                      <div
+                        key={idx}
                         className={`p-2 rounded border ${
-                          darkMode ? "bg-gray-700 border-gray-500" : "bg-white border-gray-300"
+                          darkMode
+                            ? "bg-gray-700 border-gray-500"
+                            : "bg-white border-gray-300"
                         }`}
                       >
                         <div className="aspect-w-3 aspect-h-4 mb-2">
                           {book.cover_i ? (
-                            <img 
-                              src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`} 
-                              alt={book.title || "Book cover"} 
+                            <img
+                              src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
+                              alt={book.title || "Book cover"}
                               className="w-full h-32 object-cover rounded"
                               onError={(e) => {
                                 e.target.onerror = null;
@@ -826,15 +1198,22 @@ const Chat = ({ darkMode }) => {
                             </div>
                           )}
                         </div>
-                        <h3 className="font-bold text-sm">{book.title || "Unknown Title"}</h3>
-                        <p className="text-xs mt-1">{book.author_name?.join(", ") || "Unknown Author"}</p>
-                        <p className="text-xs">{book.first_publish_year || "Unknown Year"}</p>
+                        <h3 className="font-bold text-sm">
+                          {book.title || "Unknown Title"}
+                        </h3>
+                        <p className="text-xs mt-1">
+                          {book.author_name?.join(", ") || "Unknown Author"}
+                        </p>
+                        <p className="text-xs">
+                          {book.first_publish_year || "Unknown Year"}
+                        </p>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <p className="text-sm italic">
-                    No book recommendations found. Try a different mood or category.
+                    No book recommendations found. Try a different mood or
+                    category.
                   </p>
                 )}
                 <div className="mt-3 flex justify-end">
