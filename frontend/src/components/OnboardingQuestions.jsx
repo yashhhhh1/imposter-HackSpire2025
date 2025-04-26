@@ -471,12 +471,16 @@ export default function OnboardingQuestions() {
                   : ""
               }`}
             >
-              <h2 className="text-4xl font-bold text-gray-800 mb-4">
-                {currentQuestion.question}
-              </h2>
-
+             <div className="ml-10">
+  <h2 className="text-4xl ml-8 font-bold text-gray-800 mb-4">
+    {currentQuestion.question}
+  </h2>
+  <div className="ml-8">
+    {renderQuestionInput()}
+  </div>
+</div>
+              
               {/* Question input */}
-              {renderQuestionInput()}
 
               {/* Navigation */}
               <div className="mt-10 flex items-center justify-between">

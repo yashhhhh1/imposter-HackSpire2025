@@ -504,7 +504,7 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
       {/* Sidebar */}
       <div className={`${showSidebar ? 'w-64' : 'w-20'} ${darkMode ? 'bg-gray-800 text-white' : 'bg-white'} shadow-md transition-all duration-300 flex flex-col`}>
   <div className={`p-4 ${darkMode ? 'border-gray-700' : 'border-gray-100'} border-b flex items-center justify-between`}>
-    <h2 className={`text-violet-500 font-semibold ${!showSidebar && 'hidden'}`}>MindWell Pro</h2>
+    <h2 className={`text-violet-500 font-semibold ${!showSidebar && 'hidden'}`}>MindMosaic</h2>
     <button 
       onClick={() => setShowSidebar(!showSidebar)} 
       className={`rounded-full p-2 ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-violet-100 text-violet-600'}`}
@@ -819,12 +819,76 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                   ))}
                 </div>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Mood & Anxiety Trends
+                  </h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={moodDataForChart}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#374151' : '#e5e7eb'} />
+                      <XAxis
+                        dataKey={selectedTimeRange === 'week' ? 'day' : 'week'}
+                        stroke={darkMode ? '#9ca3af' : '#6b7280'}
+                      />
+                      <YAxis stroke={darkMode ? '#9ca3af' : '#6b7280'} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: darkMode ? '#1f2937' : '#ffffff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          color: darkMode ? '#ffffff' : '#1f2937',
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="score"
+                        stroke={MOOD_COLORS.score}
+                        fill={MOOD_COLORS.score}
+                        fillOpacity={0.3}
+                        name="Mood Score"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="anxiety"
+                        stroke={MOOD_COLORS.anxiety}
+                        fill={MOOD_COLORS.anxiety}
+                        fillOpacity={0.3}
+                        name="Anxiety Level"
+                      />
+                      <Legend />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Wellbeing Factors Comparison
+                  </h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={wellbeingFactors}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#374151' : '#e5e7eb'} />
+                      <XAxis dataKey="name" stroke={darkMode ? '#9ca3af' : '#6b7280'} />
+                      <YAxis stroke={darkMode ? '#9ca3af' : '#6b7280'} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: darkMode ? '#1f2937' : '#ffffff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          color: darkMode ? '#ffffff' : '#1f2937',
+                        }}
+                      />
+                      <Bar dataKey="value" fill={MOOD_COLORS.score} name="Factor Strength" />
+                      <Legend />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
           )}
 
           {/* Other sections remain the same */}
-          {activeSection === 'check-in' && <Chat/>}
-
+          {activeSection === 'check-in' && <Chat darkMode={darkMode} />}
           {activeSection === 'insights' && (
             <div className="p-6">
               <h2 className={`text-2xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
@@ -898,273 +962,7 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
             </div>
           )}
 {activeSection === 'MoodLifter Games' && (
-  <div className="p-6">
-    <h2 className={`text-2xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-      MoodLifter Games Hub
-    </h2>
-    <p className={`mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-      Feeling a certain way? Dive into these games tailored to lift your spirits and match your mood!
-    </p>
-    <div className="space-y-8">
-      {/* Feeling Frustrated */}
-      <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-        <div className="flex items-center mb-4">
-          <AlertTriangle size={24} className={`${darkMode ? 'text-red-400' : 'text-red-500'} mr-2`} />
-          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-            Feeling Frustrated? Play These Games!
-          </h3>
-        </div>
-        <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          Channel your energy with action-packed games to release frustration.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Smash It Out
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              A fast-paced game where you smash obstacles to clear your path.
-            </p>
-            <a
-              href="/games/smash-it-out"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Battle Arena
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              Engage in epic battles to let off steam and conquer challenges.
-            </p>
-            <a
-              href="/games/battle-arena"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Feeling Stressed */}
-      <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-        <div className="flex items-center mb-4">
-          <Thermometer size={24} className={`${darkMode ? 'text-orange-400' : 'text-orange-500'} mr-2`} />
-          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-            Feeling Stressed? Play These Games!
-          </h3>
-        </div>
-        <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          Unwind with soothing puzzle games to calm your mind.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Zen Puzzle
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              Solve relaxing puzzles with calming visuals and music.
-            </p>
-            <a
-              href="/games/zen-puzzle"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Harmony Flow
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              Match colors and shapes in a stress-relieving flow game.
-            </p>
-            <a
-              href="/games/harmony-flow"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Feeling Sad */}
-      <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-        <div className="flex items-center mb-4">
-          <Heart size={24} className={`${darkMode ? 'text-blue-400' : 'text-blue-500'} mr-2`} />
-          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-            Feeling Sad? Play These Games!
-          </h3>
-        </div>
-        <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          Lift your spirits with heartwarming and uplifting games.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Journey of Joy
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              A story-driven adventure filled with hope and positivity.
-            </p>
-            <a
-              href="/games/journey-of-joy"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Sunshine Valley
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              Build a cheerful village with friendly characters.
-            </p>
-            <a
-              href="/games/sunshine-valley"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Feeling Anxious */}
-      <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-        <div className="flex items-center mb-4">
-          <Activity size={24} className={`${darkMode ? 'text-yellow-400' : 'text-yellow-500'} mr-2`} />
-          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-            Feeling Anxious? Play These Games!
-          </h3>
-        </div>
-        <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          Soothe your nerves with calming and meditative games.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Serenity Garden
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              Tend to a peaceful garden with relaxing sounds.
-            </p>
-            <a
-              href="/games/serenity-garden"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Breath of Calm
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              A guided breathing game to ease anxiety.
-            </p>
-            <a
-              href="/games/breath-of-calm"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Feeling Bored */}
-      <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-        <div className="flex items-center mb-4">
-          <Coffee size={24} className={`${darkMode ? 'text-green-400' : 'text-green-500'} mr-2`} />
-          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-            Feeling Bored? Play These Games!
-          </h3>
-        </div>
-        <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          Spark your creativity with engaging and exploratory games.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Dreamscape Creator
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              Design your own magical world and explore it.
-            </p>
-            <a
-              href="/games/dreamscape-creator"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-          <div className={`${darkMode ? 'bg-gray-700' : 'bg-violet-50'} p-4 rounded-lg `}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Cosmic Explorer
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              Embark on a space adventure to discover new planets.
-            </p>
-            <a
-              href="/games/cosmic-explorer"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Feeling Overwhelmed */}
-      <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-        <div className="flex items-center mb-4">
-          <AlertTriangle size={24} className={`${darkMode ? 'text-purple-400' : 'text-purple-500'} mr-2`} />
-          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-            Feeling Overwhelmed? Play These Games!
-          </h3>
-        </div>
-        <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          Simplify your mind with quick and focused games.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Mind Clear
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              A minimalist game to organize thoughts through simple tasks.
-            </p>
-            <a
-              href="/games/mind-clear"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-          <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-            <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Focus Blocks
-            </h4>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>
-              Stack blocks to regain focus and clarity.
-            </p>
-            <a
-              href="/games/focus-blocks"
-              className={`inline-flex items-center px-3 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
-            >
-              Play Now <ChevronRight size={16} className="ml-1" />
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  // </div>
+           <h1>hi</h1>
 )}
 
           {activeSection === 'profile' && (
