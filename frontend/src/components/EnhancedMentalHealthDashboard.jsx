@@ -531,13 +531,6 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
         {showSidebar && <span className="ml-3">Daily Check-in</span>}
       </button>
       
-      <button 
-        onClick={() => setActiveSection('insights')}
-        className={`flex items-center w-full p-3 ${activeSection === 'insights' ? (darkMode ? 'bg-gray-700 text-violet-400' : 'bg-violet-100 text-violet-700') : (darkMode ? 'text-gray-300' : 'text-gray-600')} ${!showSidebar && 'justify-center'}`}
-      >
-        <BarChart2 size={20} />
-        {showSidebar && <span className="ml-3">Insights</span>}
-      </button>
       
       <button 
         onClick={() => setActiveSection('MoodLifter Games')}
@@ -889,78 +882,6 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
 
           {/* Other sections remain the same */}
           {activeSection === 'check-in' && <Chat darkMode={darkMode} />}
-          {activeSection === 'insights' && (
-            <div className="p-6">
-              <h2 className={`text-2xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                Mental Health Insights
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                    Mood & Anxiety Trends
-                  </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={moodDataForChart}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#374151' : '#e5e7eb'} />
-                      <XAxis
-                        dataKey={selectedTimeRange === 'week' ? 'day' : 'week'}
-                        stroke={darkMode ? '#9ca3af' : '#6b7280'}
-                      />
-                      <YAxis stroke={darkMode ? '#9ca3af' : '#6b7280'} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          color: darkMode ? '#ffffff' : '#1f2937',
-                        }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="score"
-                        stroke={MOOD_COLORS.score}
-                        fill={MOOD_COLORS.score}
-                        fillOpacity={0.3}
-                        name="Mood Score"
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="anxiety"
-                        stroke={MOOD_COLORS.anxiety}
-                        fill={MOOD_COLORS.anxiety}
-                        fillOpacity={0.3}
-                        name="Anxiety Level"
-                      />
-                      <Legend />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                    Wellbeing Factors Comparison
-                  </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={wellbeingFactors}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#374151' : '#e5e7eb'} />
-                      <XAxis dataKey="name" stroke={darkMode ? '#9ca3af' : '#6b7280'} />
-                      <YAxis stroke={darkMode ? '#9ca3af' : '#6b7280'} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          color: darkMode ? '#ffffff' : '#1f2937',
-                        }}
-                      />
-                      <Bar dataKey="value" fill={MOOD_COLORS.score} name="Factor Strength" />
-                      <Legend />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-          )}
 {activeSection === 'MoodLifter Games' && (
            <h1>hi</h1>
 )}
