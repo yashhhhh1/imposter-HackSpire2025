@@ -1,53 +1,89 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie,
-  Cell, XAxis, YAxis, CartesianGrid, Tooltip,
-  Legend, ResponsiveContainer, AreaChart, Area
-} from 'recharts';
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from "recharts";
 import {
-  Calendar, Clock, Activity, User, Briefcase,
-  Users, Heart, Coffee, Menu, X, ChevronRight,
-  BarChart2, PieChart as PieChartIcon, Music, Moon,
-  MonitorSmartphone, Dumbbell, Sun, Thermometer,
-  CheckCircle, Settings, LogOut, BellRing, FileText,
-  ArrowUp, ArrowDown, AlertTriangle, Award, Book
-} from 'lucide-react';
-import { db } from '../firebase/firebase.config'; // Import Firestore instance
-import { doc, onSnapshot } from 'firebase/firestore'; // Firestore methods
-import Chat from './Chat';
+  Calendar,
+  Clock,
+  Activity,
+  User,
+  Briefcase,
+  Users,
+  Heart,
+  Coffee,
+  Menu,
+  X,
+  ChevronRight,
+  BarChart2,
+  PieChart as PieChartIcon,
+  Music,
+  Moon,
+  MonitorSmartphone,
+  Dumbbell,
+  Sun,
+  Thermometer,
+  CheckCircle,
+  Settings,
+  LogOut,
+  BellRing,
+  FileText,
+  ArrowUp,
+  ArrowDown,
+  AlertTriangle,
+  Award,
+  Book,
+} from "lucide-react";
+import { db } from "../firebase/firebase.config"; // Import Firestore instance
+import { doc, onSnapshot } from "firebase/firestore"; // Firestore methods
+import Chat from "./Chat";
 
-export default function EnhancedMentalHealthDashboard({ userId }) { // Assume userId is passed as a prop
+export default function EnhancedMentalHealthDashboard({ userId }) {
+  // Assume userId is passed as a prop
   const [moodData, setMoodData] = useState(null);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState("dashboard");
   const [checkInCompleted, setCheckInCompleted] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedTimeRange, setSelectedTimeRange] = useState('week');
+  const [selectedTimeRange, setSelectedTimeRange] = useState("week");
   const [showNotifications, setShowNotifications] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
-  const [responses, setResponses] = useState({
-    feeling: '',
-    energy: '',
-    stress: '',
-    sleep: '',
-    social: '',
-    work: ''
-  });
+  // const [currentQuestion, setCurrentQuestion] = useState(0);
+  // const [responses, setResponses] = useState({
+  //   feeling: '',
+  //   energy: '',
+  //   stress: '',
+  //   sleep: '',
+  //   social: '',
+  //   work: ''
+  // });
 
   // Fetch user data from Firestore onboardingAnswers collection
   useEffect(() => {
     if (!userId) {
-      setError('User ID not provided');
+      setError("User ID not provided");
       setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
-    const answerDocRef = doc(db, 'onboardingAnswers', userId);
+    const answerDocRef = doc(db, "onboardingAnswers", userId);
 
     // Set up real-time listener
     const unsubscribe = onSnapshot(
@@ -59,16 +95,16 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
             ...data,
             timestamp: data.timestamp?.toDate() || new Date(),
           });
-          console.log('User data:', data);
+          console.log("User data:", data);
           setError(null);
         } else {
-          setError('Onboarding answers not found');
+          setError("Onboarding answers not found");
         }
         setIsLoading(false);
       },
       (err) => {
-        console.error('Firestore error:', err);
-        setError('Failed to fetch onboarding answers');
+        console.error("Firestore error:", err);
+        setError("Failed to fetch onboarding answers");
         setIsLoading(false);
       }
     );
@@ -84,11 +120,11 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
 
   // Apply dark mode effect
   useEffect(() => {
-    const body = document.querySelector('body');
+    const body = document.querySelector("body");
     if (darkMode) {
-      body.classList.add('dark-theme');
+      body.classList.add("dark-theme");
     } else {
-      body.classList.remove('dark-theme');
+      body.classList.remove("dark-theme");
     }
   }, [darkMode]);
 
@@ -138,44 +174,88 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
 
     const baseScore = calculateWellbeingScore(userData);
 
-    if (timeRange === 'week') {
+    if (timeRange === "week") {
       return [
-        { day: 'Mon', score: Math.min(Math.max(baseScore - 0.7, 1), 10), anxiety: 3.2 },
-        { day: 'Tue', score: Math.min(Math.max(baseScore - 0.2, 1), 10), anxiety: 2.8 },
-        { day: 'Wed', score: Math.min(Math.max(baseScore + 0.3, 1), 10), anxiety: 2.5 },
-        { day: 'Thu', score: Math.min(Math.max(baseScore - 1.2, 1), 10), anxiety: 4.1 },
-        { day: 'Fri', score: Math.min(Math.max(baseScore + 1.0, 1), 10), anxiety: 2.2 },
-        { day: 'Sat', score: Math.min(Math.max(baseScore + 1.5, 1), 10), anxiety: 1.8 },
-        { day: 'Sun', score: Math.min(Math.max(baseScore + 0.8, 1), 10), anxiety: 2.0 },
+        {
+          day: "Mon",
+          score: Math.min(Math.max(baseScore - 0.7, 1), 10),
+          anxiety: 3.2,
+        },
+        {
+          day: "Tue",
+          score: Math.min(Math.max(baseScore - 0.2, 1), 10),
+          anxiety: 2.8,
+        },
+        {
+          day: "Wed",
+          score: Math.min(Math.max(baseScore + 0.3, 1), 10),
+          anxiety: 2.5,
+        },
+        {
+          day: "Thu",
+          score: Math.min(Math.max(baseScore - 1.2, 1), 10),
+          anxiety: 4.1,
+        },
+        {
+          day: "Fri",
+          score: Math.min(Math.max(baseScore + 1.0, 1), 10),
+          anxiety: 2.2,
+        },
+        {
+          day: "Sat",
+          score: Math.min(Math.max(baseScore + 1.5, 1), 10),
+          anxiety: 1.8,
+        },
+        {
+          day: "Sun",
+          score: Math.min(Math.max(baseScore + 0.8, 1), 10),
+          anxiety: 2.0,
+        },
       ];
     } else {
       return [
-        { week: 'Week 1', score: Math.min(Math.max(baseScore - 0.7, 1), 10), anxiety: 3.2 },
-        { week: 'Week 2', score: Math.min(Math.max(baseScore - 0.4, 1), 10), anxiety: 2.9 },
-        { week: 'Week 3', score: Math.min(Math.max(baseScore + 0.5, 1), 10), anxiety: 2.5 },
-        { week: 'Week 4', score: Math.min(Math.max(baseScore + 0.2, 1), 10), anxiety: 2.3 },
+        {
+          week: "Week 1",
+          score: Math.min(Math.max(baseScore - 0.7, 1), 10),
+          anxiety: 3.2,
+        },
+        {
+          week: "Week 2",
+          score: Math.min(Math.max(baseScore - 0.4, 1), 10),
+          anxiety: 2.9,
+        },
+        {
+          week: "Week 3",
+          score: Math.min(Math.max(baseScore + 0.5, 1), 10),
+          anxiety: 2.5,
+        },
+        {
+          week: "Week 4",
+          score: Math.min(Math.max(baseScore + 0.2, 1), 10),
+          anxiety: 2.3,
+        },
       ];
     }
   };
 
   // Default mood data fallbacks
   const defaultMoodData = (timeRange) => {
-    if (timeRange === 'week') {
+    if (timeRange === "week") {
       return [
-        { day: 'Mon', score: 6.5, anxiety: 3.2 },
-        { day: 'Tue', score: 7.2, anxiety: 2.8 },
-        { day: 'Wed', score: 6.8, anxiety: 2.5 },
-        { day: 'Thu', score: 5.5, anxiety: 4.1 },
-        { day: 'Fri', score: 7.8, anxiety: 2.2 },
-        { day: 'Sat', score: 8.5, anxiety: 1.8 },
-        { day: 'Sun', score: 8.2, anxiety: 2.0 },
+        { day: "Mon", score: 6.5, anxiety: 3.2 },
+        { day: "Tue", score: 7.2, anxiety: 2.8 },
+        { day: "Wed", score: 6.8, anxiety: 2.5 },
+        { day: "Thu", score: 5.5, anxiety: 4.1 },
+        { day: "Fri", score: 7.8, anxiety: 2.2 },
+        { day: "Sat", score: 8.5, anxiety: 1.8 },
+        { day: "Sun", score: 8.2, anxiety: 2.0 },
       ];
     } else {
       return [
-        { week: 'Week 1', score: 6.2, anxiety: 3.5 },
-        { week: 'Week 2', score: 6.8, anxiety: 3.1 },
-        { week: 'Week 3', score: 7.4, anxiety: 2.7 },
-        { week: 'Week 4', score: 7.2, anxiety: 2.6 },
+        { week: "Week 1", score: 6.2, anxiety: 3.5 },
+        { week: "Week 2", score: 6.8, anxiety: 3.1 },
+        { week: "Week 3", score: 7.4, anxiety: 2.7 },
+        { week: "Week 4", score: 7.2, anxiety: 2.6 },
       ];
     }
   };
@@ -186,34 +266,59 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
 
     return [
       {
-        name: 'Sleep',
-        value: userData.sleep_quality === "Excellent" ? 90 :
-          userData.sleep_quality === "Good" ? 75 :
-            userData.sleep_quality === "Fair" ? 60 : 40
+        name: "Sleep",
+        value:
+          userData.sleep_quality === "Excellent"
+            ? 90
+            : userData.sleep_quality === "Good"
+            ? 75
+            : userData.sleep_quality === "Fair"
+            ? 60
+            : 40,
       },
       {
-        name: 'Exercise',
-        value: userData.workout_routine === "Daily" ? 90 :
-          userData.workout_routine === "3-5 times a week" ? 75 :
-            userData.workout_routine === "Occasionally" ? 50 : 30
+        name: "Exercise",
+        value:
+          userData.workout_routine === "Daily"
+            ? 90
+            : userData.workout_routine === "3-5 times a week"
+            ? 75
+            : userData.workout_routine === "Occasionally"
+            ? 50
+            : 30,
       },
       {
-        name: 'Social',
-        value: userData.social_life === "Very Active" ? 90 :
-          userData.social_life === "Somewhat Active" ? 70 :
-            userData.social_life === "Not Very Active" ? 50 : 30
+        name: "Social",
+        value:
+          userData.social_life === "Very Active"
+            ? 90
+            : userData.social_life === "Somewhat Active"
+            ? 70
+            : userData.social_life === "Not Very Active"
+            ? 50
+            : 30,
       },
       {
-        name: 'Work',
-        value: userData.work_environment === "Very Supportive" ? 85 :
-          userData.work_environment === "Somewhat Supportive" ? 65 :
-            userData.work_environment === "Neutral" ? 50 : 30
+        name: "Work",
+        value:
+          userData.work_environment === "Very Supportive"
+            ? 85
+            : userData.work_environment === "Somewhat Supportive"
+            ? 65
+            : userData.work_environment === "Neutral"
+            ? 50
+            : 30,
       },
       {
-        name: 'Self-care',
-        value: userData.self_care === "Daily" ? 90 :
-          userData.self_care === "A few times a week" ? 75 :
-            userData.self_care === "Weekly" ? 60 : 40
+        name: "Self-care",
+        value:
+          userData.self_care === "Daily"
+            ? 90
+            : userData.self_care === "A few times a week"
+            ? 75
+            : userData.self_care === "Weekly"
+            ? 60
+            : 40,
       },
     ];
   };
@@ -225,20 +330,28 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
     const recommendations = [];
 
     // Sleep recommendations
-    if (userData.sleep_quality === "Poor" || userData.sleep_quality === "Fair") {
+    if (
+      userData.sleep_quality === "Poor" ||
+      userData.sleep_quality === "Fair"
+    ) {
       recommendations.push({
         title: "Improve Sleep Quality",
-        content: "Try going to bed 30 minutes earlier and establish a relaxing bedtime routine without screens.",
-        icon: <Moon size={18} />
+        content:
+          "Try going to bed 30 minutes earlier and establish a relaxing bedtime routine without screens.",
+        icon: <Moon size={18} />,
       });
     }
 
     // Work stress recommendations
-    if (userData.stress_levels > 3 || userData.work_environment !== "Very Supportive") {
+    if (
+      userData.stress_levels > 3 ||
+      userData.work_environment !== "Very Supportive"
+    ) {
       recommendations.push({
         title: "Reduce Work Stress",
-        content: "Practice the 5-minute breathing exercise before starting work meetings and take regular breaks.",
-        icon: <Briefcase size={18} />
+        content:
+          "Practice the 5-minute breathing exercise before starting work meetings and take regular breaks.",
+        icon: <Briefcase size={18} />,
       });
     }
 
@@ -246,27 +359,35 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
     if (userData.social_life !== "Very Active") {
       recommendations.push({
         title: "Social Connection",
-        content: "Schedule a coffee date with a close friend this weekend to boost your mood and social connection.",
-        icon: <Users size={18} />
+        content:
+          "Schedule a coffee date with a close friend this weekend to boost your mood and social connection.",
+        icon: <Users size={18} />,
       });
     }
 
     // Exercise recommendations
-    if (userData.workout_routine !== "Daily" && userData.workout_routine !== "3-5 times a week") {
+    if (
+      userData.workout_routine !== "Daily" &&
+      userData.workout_routine !== "3-5 times a week"
+    ) {
       recommendations.push({
         title: "Regular Exercise",
-        content: "Try incorporating a 20-minute walk or light exercise into your daily routine.",
-        icon: <Dumbbell size={18} />
+        content:
+          "Try incorporating a 20-minute walk or light exercise into your daily routine.",
+        icon: <Dumbbell size={18} />,
       });
     }
 
     // Music therapy (based on music preferences)
-    if (userData.music_mood === "Yes, regularly" && userData.music_genres?.length > 0) {
+    if (
+      userData.music_mood === "Yes, regularly" &&
+      userData.music_genres?.length > 0
+    ) {
       const genres = userData.music_genres.join(", ");
       recommendations.push({
         title: "Music Therapy",
         content: `Create a relaxation playlist with your favorite ${genres} music for stress relief.`,
-        icon: <Music size={18} />
+        icon: <Music size={18} />,
       });
     }
 
@@ -274,8 +395,9 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
     if (recommendations.length < 3) {
       recommendations.push({
         title: "Digital Detox",
-        content: "Try a 2-hour screen-free period before bedtime to improve sleep and mental clarity.",
-        icon: <MonitorSmartphone size={18} />
+        content:
+          "Try a 2-hour screen-free period before bedtime to improve sleep and mental clarity.",
+        icon: <MonitorSmartphone size={18} />,
       });
     }
 
@@ -285,30 +407,33 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
 
   // Default wellbeing factors
   const wellbeingFactorsDefault = [
-    { name: 'Sleep', value: 65 },
-    { name: 'Exercise', value: 45 },
-    { name: 'Social', value: 70 },
-    { name: 'Work', value: 30 },
-    { name: 'Self-care', value: 60 },
+    { name: "Sleep", value: 65 },
+    { name: "Exercise", value: 45 },
+    { name: "Social", value: 70 },
+    { name: "Work", value: 30 },
+    { name: "Self-care", value: 60 },
   ];
 
   // Default recommendations
   const defaultRecommendations = [
     {
       title: "Sleep Better",
-      content: "Try going to bed 30 minutes earlier and establish a relaxing bedtime routine.",
-      icon: <Moon size={18} />
+      content:
+        "Try going to bed 30 minutes earlier and establish a relaxing bedtime routine.",
+      icon: <Moon size={18} />,
     },
     {
       title: "Reduce Work Stress",
-      content: "Practice the 5-minute breathing exercise before starting work meetings.",
-      icon: <Briefcase size={18} />
+      content:
+        "Practice the 5-minute breathing exercise before starting work meetings.",
+      icon: <Briefcase size={18} />,
     },
     {
       title: "Social Connection",
-      content: "Schedule a coffee date with a close friend this weekend to boost your mood.",
-      icon: <Users size={18} />
-    }
+      content:
+        "Schedule a coffee date with a close friend this weekend to boost your mood.",
+      icon: <Users size={18} />,
+    },
   ];
 
   // Get self-care activities
@@ -344,108 +469,108 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
   };
 
   // Check-in questions
-  const checkInQuestions = [
-    {
-      question: "How have you been feeling emotionally today?",
-      placeholder: "I've been feeling...",
-      field: "feeling",
-      options: ["Very Happy", "Content", "Neutral", "Sad", "Very Distressed"]
-    },
-    {
-      question: "How would you rate your energy level today?",
-      placeholder: "My energy is...",
-      field: "energy",
-      options: ["Very High", "High", "Moderate", "Low", "Very Low"]
-    },
-    {
-      question: "What's your stress level like at work recently?",
-      placeholder: "My work stress is...",
-      field: "stress",
-      options: ["None", "Minimal", "Moderate", "High", "Extreme"]
-    },
-    {
-      question: "How has your sleep quality been this week?",
-      placeholder: "My sleep has been...",
-      field: "sleep",
-      options: ["Excellent", "Good", "Fair", "Poor", "Very Poor"]
-    },
-    {
-      question: "How connected do you feel to your social circle?",
-      placeholder: "Socially, I feel...",
-      field: "social",
-      options: ["Very Connected", "Connected", "Somewhat Connected", "Isolated", "Very Isolated"]
-    },
-    {
-      question: "How are you balancing work and personal life?",
-      placeholder: "My work-life balance is...",
-      field: "work",
-      options: ["Excellent", "Good", "Fair", "Poor", "Terrible"]
-    }
-  ];
+  // const checkInQuestions = [
+  //   {
+  //     question: "How have you been feeling emotionally today?",
+  //     placeholder: "I've been feeling...",
+  //     field: "feeling",
+  //     options: ["Very Happy", "Content", "Neutral", "Sad", "Very Distressed"]
+  //   },
+  //   {
+  //     question: "How would you rate your energy level today?",
+  //     placeholder: "My energy is...",
+  //     field: "energy",
+  //     options: ["Very High", "High", "Moderate", "Low", "Very Low"]
+  //   },
+  //   {
+  //     question: "What's your stress level like at work recently?",
+  //     placeholder: "My work stress is...",
+  //     field: "stress",
+  //     options: ["None", "Minimal", "Moderate", "High", "Extreme"]
+  //   },
+  //   {
+  //     question: "How has your sleep quality been this week?",
+  //     placeholder: "My sleep has been...",
+  //     field: "sleep",
+  //     options: ["Excellent", "Good", "Fair", "Poor", "Very Poor"]
+  //   },
+  //   {
+  //     question: "How connected do you feel to your social circle?",
+  //     placeholder: "Socially, I feel...",
+  //     field: "social",
+  //     options: ["Very Connected", "Connected", "Somewhat Connected", "Isolated", "Very Isolated"]
+  //   },
+  //   {
+  //     question: "How are you balancing work and personal life?",
+  //     placeholder: "My work-life balance is...",
+  //     field: "work",
+  //     options: ["Excellent", "Good", "Fair", "Poor", "Terrible"]
+  //   }
+  // ];
 
-  // Handle response selection (radio buttons)
-  const handleOptionSelect = (option) => {
-    setResponses({
-      ...responses,
-      [checkInQuestions[currentQuestion].field]: option
-    });
-  };
+  // // Handle response selection (radio buttons)
+  // const handleOptionSelect = (option) => {
+  //   setResponses({
+  //     ...responses,
+  //     [checkInQuestions[currentQuestion].field]: option
+  //   });
+  // };
 
-  // Handle text response change
-  const handleResponseChange = (e) => {
-    setResponses({
-      ...responses,
-      [checkInQuestions[currentQuestion].field]: e.target.value
-    });
-  };
+  // // Handle text response change
+  // const handleResponseChange = (e) => {
+  //   setResponses({
+  //     ...responses,
+  //     [checkInQuestions[currentQuestion].field]: e.target.value
+  //   });
+  // };
 
-  // Handle next question
-  const handleNextQuestion = () => {
-    if (currentQuestion < checkInQuestions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else {
-      // Process the check-in data
-      processCheckInData();
-      setCheckInCompleted(true);
-      setActiveSection('dashboard');
-    }
-  };
+  // // Handle next question
+  // const handleNextQuestion = () => {
+  //   if (currentQuestion < checkInQuestions.length - 1) {
+  //     setCurrentQuestion(currentQuestion + 1);
+  //   } else {
+  //     // Process the check-in data
+  //     processCheckInData();
+  //     setCheckInCompleted(true);
+  //     setActiveSection('dashboard');
+  //   }
+  // };
 
   // Process check-in data
-  const processCheckInData = () => {
-    // This would analyze the text inputs using NLP and sentiment analysis
-    // For demo purposes, we're just setting some sample data
-    setMoodData({
-      overall: 7.2,
-      emotions: {
-        happiness: 65,
-        anxiety: 30,
-        sadness: 15,
-        calmness: 55,
-        stress: 40
-      },
-      factors: {
-        sleep: responses.sleep.length > 10 ? 60 : 40,
-        work: responses.work.includes('good') ? 70 : 45,
-        social: responses.social.includes('connected') ? 75 : 50
-      }
-    });
-  };
+  // const processCheckInData = () => {
+  //   // This would analyze the text inputs using NLP and sentiment analysis
+  //   // For demo purposes, we're just setting some sample data
+  //   setMoodData({
+  //     overall: 7.2,
+  //     emotions: {
+  //       happiness: 65,
+  //       anxiety: 30,
+  //       sadness: 15,
+  //       calmness: 55,
+  //       stress: 40
+  //     },
+  //     factors: {
+  //       sleep: responses.sleep.length > 10 ? 60 : 40,
+  //       work: responses.work.includes('good') ? 70 : 45,
+  //       social: responses.social.includes('connected') ? 75 : 50
+  //     }
+  //   });
+  // };
 
-  // Start new check-in
-  const startNewCheckIn = () => {
-    setCheckInCompleted(false);
-    setCurrentQuestion(0);
-    setResponses({
-      feeling: '',
-      energy: '',
-      stress: '',
-      sleep: '',
-      social: '',
-      work: ''
-    });
-    setActiveSection('check-in');
-  };
+  // // Start new check-in
+  // const startNewCheckIn = () => {
+  //   setCheckInCompleted(false);
+  //   setCurrentQuestion(0);
+  //   setResponses({
+  //     feeling: '',
+  //     energy: '',
+  //     stress: '',
+  //     sleep: '',
+  //     social: '',
+  //     work: ''
+  //   });
+  //   setActiveSection('check-in');
+  // };
 
   // Calculate various metrics
   const wellbeingScore = userData ? calculateWellbeingScore(userData) : 7.2;
@@ -455,25 +580,43 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
   const selfCareActivities = getSelfCareActivities(userData);
 
   // Colors
-  const COLORS = ['#8b5cf6', '#a78bfa', '#c4b5fd', '#ddd6fe', '#ede9fe'];
+  const COLORS = ["#8b5cf6", "#a78bfa", "#c4b5fd", "#ddd6fe", "#ede9fe"];
   const MOOD_COLORS = {
-    score: '#8b5cf6',  // Purple for mood score
-    anxiety: '#ef4444' // Red for anxiety
+    score: "#8b5cf6", // Purple for mood score
+    anxiety: "#ef4444", // Red for anxiety
   };
 
   // Mock notifications
   const notifications = [
-    { id: 1, title: "Check-in Reminder", message: "Don't forget your daily check-in", time: "10 mins ago", read: false },
-    { id: 2, title: "New Article", message: "5 ways to reduce workplace stress", time: "2 hours ago", read: false },
-    { id: 3, title: "Weekly Report", message: "Your weekly wellness report is ready", time: "Yesterday", read: true }
+    {
+      id: 1,
+      title: "Check-in Reminder",
+      message: "Don't forget your daily check-in",
+      time: "10 mins ago",
+      read: false,
+    },
+    {
+      id: 2,
+      title: "New Article",
+      message: "5 ways to reduce workplace stress",
+      time: "2 hours ago",
+      read: false,
+    },
+    {
+      id: 3,
+      title: "Weekly Report",
+      message: "Your weekly wellness report is ready",
+      time: "Yesterday",
+      read: true,
+    },
   ];
 
-  // Mock journal entries
-  const journalEntries = [
-    { date: "Apr 25", mood: 8.5, highlight: "Started meditation practice, feeling calm" },
-    { date: "Apr 24", mood: 7.2, highlight: "Meeting went well, but felt tired" },
-    { date: "Apr 23", mood: 6.5, highlight: "Stress at work, had a good walk" }
-  ];
+  // // Mock journal entries
+  // const journalEntries = [
+  //   { date: "Apr 25", mood: 8.5, highlight: "Started meditation practice, feeling calm" },
+  //   { date: "Apr 24", mood: 7.2, highlight: "Meeting went well, but felt tired" },
+  //   { date: "Apr 23", mood: 6.5, highlight: "Stress at work, had a good walk" }
+  // ];
 
   // Loading state
   if (isLoading) {
@@ -481,7 +624,9 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
       <div className="flex items-center justify-center h-screen bg-gray-50">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-violet-200 border-t-violet-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-lg text-gray-700">Loading your wellness dashboard...</p>
+          <p className="text-lg text-gray-700">
+            Loading your wellness dashboard...
+          </p>
         </div>
       </div>
     );
@@ -500,14 +645,32 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
   }
 
   return (
-    <div className={`flex h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`flex h-screen ${darkMode ? "bg-gray-900" : "bg-gray-50"}`}>
       {/* Sidebar */}
-      <div className={`${showSidebar ? 'w-64' : 'w-20'} ${darkMode ? 'bg-gray-800 text-white' : 'bg-white'} shadow-md transition-all duration-300 flex flex-col`}>
-        <div className={`p-4 ${darkMode ? 'border-gray-700' : 'border-gray-100'} border-b flex items-center justify-between`}>
-          <h2 className={`text-violet-500 font-semibold ${!showSidebar && 'hidden'}`}>MindMosaic</h2>
+      <div
+        className={`${showSidebar ? "w-64" : "w-20"} ${
+          darkMode ? "bg-gray-800 text-white" : "bg-white"
+        } shadow-md transition-all duration-300 flex flex-col`}
+      >
+        <div
+          className={`p-4 ${
+            darkMode ? "border-gray-700" : "border-gray-100"
+          } border-b flex items-center justify-between`}
+        >
+          <h2
+            className={`text-violet-500 font-semibold ${
+              !showSidebar && "hidden"
+            }`}
+          >
+            MindMosaic
+          </h2>
           <button
             onClick={() => setShowSidebar(!showSidebar)}
-            className={`rounded-full p-2 ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-violet-100 text-violet-600'}`}
+            className={`rounded-full p-2 ${
+              darkMode
+                ? "hover:bg-gray-700 text-gray-300"
+                : "hover:bg-violet-100 text-violet-600"
+            }`}
           >
             {showSidebar ? <X size={18} /> : <Menu size={18} />}
           </button>
@@ -516,40 +679,81 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
         <div className="flex-1 py-4">
           <nav>
             <button
-              onClick={() => setActiveSection('dashboard')}
-              className={`flex items-center w-full p-3 ${activeSection === 'dashboard' ? (darkMode ? 'bg-gray-700 text-violet-400' : 'bg-violet-100 text-violet-700') : (darkMode ? 'text-gray-300' : 'text-gray-600')} ${!showSidebar && 'justify-center'}`}
+              onClick={() => setActiveSection("dashboard")}
+              className={`flex items-center w-full p-3 ${
+                activeSection === "dashboard"
+                  ? darkMode
+                    ? "bg-gray-700 text-violet-400"
+                    : "bg-violet-100 text-violet-700"
+                  : darkMode
+                  ? "text-gray-300"
+                  : "text-gray-600"
+              } ${!showSidebar && "justify-center"}`}
             >
               <Activity size={20} />
               {showSidebar && <span className="ml-3">Dashboard</span>}
             </button>
 
             <button
-              onClick={() => setActiveSection('check-in')}
-              className={`flex items-center w-full p-3 ${activeSection === 'check-in' ? (darkMode ? 'bg-gray-700 text-violet-400' : 'bg-violet-100 text-violet-700') : (darkMode ? 'text-gray-300' : 'text-gray-600')} ${!showSidebar && 'justify-center'}`}
+              onClick={() => setActiveSection("check-in")}
+              className={`flex items-center w-full p-3 ${
+                activeSection === "check-in"
+                  ? darkMode
+                    ? "bg-gray-700 text-violet-400"
+                    : "bg-violet-100 text-violet-700"
+                  : darkMode
+                  ? "text-gray-300"
+                  : "text-gray-600"
+              } ${!showSidebar && "justify-center"}`}
             >
               <Heart size={20} />
               {showSidebar && <span className="ml-3">Daily Check-in</span>}
             </button>
 
-            <button
-              onClick={() => setActiveSection('insights')}
-              className={`flex items-center w-full p-3 ${activeSection === 'insights' ? (darkMode ? 'bg-gray-700 text-violet-400' : 'bg-violet-100 text-violet-700') : (darkMode ? 'text-gray-300' : 'text-gray-600')} ${!showSidebar && 'justify-center'}`}
+            {/* <button
+              onClick={() => setActiveSection("insights")}
+              className={`flex items-center w-full p-3 ${
+                activeSection === "insights"
+                  ? darkMode
+                    ? "bg-gray-700 text-violet-400"
+                    : "bg-violet-100 text-violet-700"
+                  : darkMode
+                  ? "text-gray-300"
+                  : "text-gray-600"
+              } ${!showSidebar && "justify-center"}`}
             >
               <BarChart2 size={20} />
               {showSidebar && <span className="ml-3">Insights</span>}
-            </button>
+            </button> */}
 
             <button
-              onClick={() => setActiveSection('MoodLifter Games')}
-              className={`flex items-center w-full p-3 ${activeSection === 'MoodLifter Games' ? (darkMode ? 'bg-gray-700 text-violet-400' : 'bg-violet-100 text-violet-700') : (darkMode ? 'text-gray-300' : 'text-gray-600')} ${!showSidebar && 'justify-center'}`}
+              onClick={() => setActiveSection("MoodLifter Games")}
+              className={`flex items-center w-full p-3 ${
+                activeSection === "MoodLifter Games"
+                  ? darkMode
+                    ? "bg-gray-700 text-violet-400"
+                    : "bg-violet-100 text-violet-700"
+                  : darkMode
+                  ? "text-gray-300"
+                  : "text-gray-600"
+              } ${!showSidebar && "justify-center"}`}
             >
-              <Book size={20} /> {/* Consider replacing with <Gamepad size={20} /> for a gaming icon */}
+              <Book size={20} />{" "}
+              {/* Consider replacing with <Gamepad size={20} /> for a gaming icon */}
               {showSidebar && <span className="ml-3">MoodLifter Games</span>}
             </button>
 
             <button
-              onClick={() => setActiveSection('profile')}
-              className={`flex items-center w-full p-3 ${activeSection === 'profile' ? (darkMode ? 'bg-gray-700 text-violet-400' : 'bg-violet-100 text-violet-700') : (darkMode ? 'text-gray-300' : 'text-gray-600')} ${!showSidebar && 'justify-center'}`}
+              onClick={() => setActiveSection("profile")}
+              className={`flex items-center w-full p-3 ${
+                activeSection === "profile"
+                  ? darkMode
+                    ? "bg-gray-700 text-violet-400"
+                    : "bg-violet-100 text-violet-700"
+                  : darkMode
+                  ? "text-gray-300"
+                  : "text-gray-600"
+              } ${!showSidebar && "justify-center"}`}
             >
               <User size={20} />
               {showSidebar && <span className="ml-3">Profile</span>}
@@ -557,8 +761,16 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
 
             {showSidebar && (
               <button
-                onClick={() => setActiveSection('settings')}
-                className={`flex items-center w-full p-3 ${activeSection === 'settings' ? (darkMode ? 'bg-gray-700 text-violet-400' : 'bg-violet-100 text-violet-700') : (darkMode ? 'text-gray-300' : 'text-gray-600')}`}
+                onClick={() => setActiveSection("settings")}
+                className={`flex items-center w-full p-3 ${
+                  activeSection === "settings"
+                    ? darkMode
+                      ? "bg-gray-700 text-violet-400"
+                      : "bg-violet-100 text-violet-700"
+                    : darkMode
+                    ? "text-gray-300"
+                    : "text-gray-600"
+                }`}
               >
                 <Settings size={20} />
                 <span className="ml-3">Settings</span>
@@ -567,14 +779,36 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
           </nav>
         </div>
 
-        <div className={`p-4 ${darkMode ? 'border-gray-700' : 'border-gray-100'} border-t`}>
-          <div className={`flex items-center ${!showSidebar && 'justify-center'}`}>
-            <div className={`w-8 h-8 rounded-full ${darkMode ? 'bg-violet-900' : 'bg-violet-200'} flex items-center justify-center ${darkMode ? 'text-violet-300' : 'text-violet-700'}`}>
-              {userData?.gender === "Male" ? "M" : userData?.gender === "Female" ? "F" : "U"}
+        <div
+          className={`p-4 ${
+            darkMode ? "border-gray-700" : "border-gray-100"
+          } border-t`}
+        >
+          <div
+            className={`flex items-center ${!showSidebar && "justify-center"}`}
+          >
+            <div
+              className={`w-8 h-8 rounded-full ${
+                darkMode ? "bg-violet-900" : "bg-violet-200"
+              } flex items-center justify-center ${
+                darkMode ? "text-violet-300" : "text-violet-700"
+              }`}
+            >
+              {userData?.gender === "Male"
+                ? "M"
+                : userData?.gender === "Female"
+                ? "F"
+                : "U"}
             </div>
             {showSidebar && (
               <div className="ml-3">
-                <p className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{userData?.profession || "User"}</p>
+                <p
+                  className={`text-sm font-medium ${
+                    darkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  {userData?.profession || "User"}
+                </p>
                 <p className="text-xs text-gray-500">user@example.com</p>
               </div>
             )}
@@ -582,24 +816,37 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
         </div>
       </div>
 
-
       {/* Top Bar */}
       <div className="flex-1 flex flex-col">
-        <div className={`h-16 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} border-b flex items-center justify-between px-6`}>
+        <div
+          className={`h-16 ${
+            darkMode
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white border-gray-100"
+          } border-b flex items-center justify-between px-6`}
+        >
           <div className="flex items-center">
-            <h1 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-              {activeSection === 'dashboard' && 'Mental Wellness Dashboard'}
-              {activeSection === 'check-in' && 'Daily Mental Health Check-in'}
-              {activeSection === 'insights' && 'Mental Health Insights'}
-              {activeSection === 'journal' && 'Wellness Journal'}
-              {activeSection === 'profile' && 'Your Profile'}
-              {activeSection === 'settings' && 'Settings'}
+            <h1
+              className={`text-xl font-semibold ${
+                darkMode ? "text-white" : "text-gray-800"
+              }`}
+            >
+              {activeSection === "dashboard" && "Mental Wellness Dashboard"}
+              {activeSection === "check-in" && "Daily Mental Health Check-in"}
+              {/* {activeSection === "insights" && "Mental Health Insights"} */}
+              {activeSection === "journal" && "Wellness Journal"}
+              {activeSection === "profile" && "Your Profile"}
+              {activeSection === "settings" && "Settings"}
             </h1>
           </div>
 
           <div className="flex items-center space-x-4">
             {/* Date display */}
-            <div className={`flex items-center ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            <div
+              className={`flex items-center ${
+                darkMode ? "text-gray-300" : "text-gray-600"
+              }`}
+            >
               <Calendar size={18} className="mr-2" />
               <span className="text-sm">April 26, 2025</span>
             </div>
@@ -607,7 +854,11 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
             {/* Dark mode toggle */}
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className={`p-2 rounded-full ${darkMode ? 'bg-gray-700 text-yellow-400' : 'bg-gray-100 text-gray-600'}`}
+              className={`p-2 rounded-full ${
+                darkMode
+                  ? "bg-gray-700 text-yellow-400"
+                  : "bg-gray-100 text-gray-600"
+              }`}
             >
               {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
@@ -616,28 +867,83 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className={`p-2 rounded-full ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'} relative`}
+                className={`p-2 rounded-full ${
+                  darkMode
+                    ? "bg-gray-700 text-gray-300"
+                    : "bg-gray-100 text-gray-600"
+                } relative`}
               >
                 <BellRing size={18} />
                 <span className="absolute top-0 right-0 block w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
 
               {showNotifications && (
-                <div className={`absolute right-0 mt-2 w-72 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-lg z-10`}>
-                  <div className={`p-3 ${darkMode ? 'border-gray-700' : 'border-gray-100'} border-b flex justify-between items-center`}>
-                    <h3 className={`font-medium ${darkMode ? 'text-white' : 'text-gray-700'}`}>Notifications</h3>
-                    <span className={`text-xs ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'} rounded-full px-2 py-1`}>
-                      {notifications.filter(n => !n.read).length} new
+                <div
+                  className={`absolute right-0 mt-2 w-72 ${
+                    darkMode
+                      ? "bg-gray-800 border-gray-700"
+                      : "bg-white border-gray-200"
+                  } border rounded-lg shadow-lg z-10`}
+                >
+                  <div
+                    className={`p-3 ${
+                      darkMode ? "border-gray-700" : "border-gray-100"
+                    } border-b flex justify-between items-center`}
+                  >
+                    <h3
+                      className={`font-medium ${
+                        darkMode ? "text-white" : "text-gray-700"
+                      }`}
+                    >
+                      Notifications
+                    </h3>
+                    <span
+                      className={`text-xs ${
+                        darkMode
+                          ? "bg-gray-700 text-gray-300"
+                          : "bg-gray-100 text-gray-600"
+                      } rounded-full px-2 py-1`}
+                    >
+                      {notifications.filter((n) => !n.read).length} new
                     </span>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
-                    {notifications.map(notification => (
-                      <div key={notification.id} className={`p-3 ${!notification.read ? (darkMode ? 'bg-gray-700' : 'bg-violet-50') : ''} ${darkMode ? 'border-gray-700' : 'border-gray-100'} border-b`}>
+                    {notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className={`p-3 ${
+                          !notification.read
+                            ? darkMode
+                              ? "bg-gray-700"
+                              : "bg-violet-50"
+                            : ""
+                        } ${
+                          darkMode ? "border-gray-700" : "border-gray-100"
+                        } border-b`}
+                      >
                         <div className="flex justify-between">
-                          <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{notification.title}</h4>
-                          <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{notification.time}</span>
+                          <h4
+                            className={`font-medium ${
+                              darkMode ? "text-gray-200" : "text-gray-800"
+                            }`}
+                          >
+                            {notification.title}
+                          </h4>
+                          <span
+                            className={`text-xs ${
+                              darkMode ? "text-gray-400" : "text-gray-500"
+                            }`}
+                          >
+                            {notification.time}
+                          </span>
                         </div>
-                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{notification.message}</p>
+                        <p
+                          className={`text-sm ${
+                            darkMode ? "text-gray-400" : "text-gray-600"
+                          }`}
+                        >
+                          {notification.message}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -648,22 +954,38 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
         </div>
 
         {/* Main Content */}
-        <div className={`flex-1 overflow-auto ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'}`}>
-          {activeSection === 'dashboard' && (
+        <div
+          className={`flex-1 overflow-auto ${
+            darkMode ? "bg-gray-900 text-white" : "bg-gray-50"
+          }`}
+        >
+          {activeSection === "dashboard" && (
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Welcome back, {userData?.profession || 'User'}!
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Welcome back, {userData?.profession || "User"}!
                   </p>
-                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  <h2
+                    className={`text-2xl font-bold ${
+                      darkMode ? "text-white" : "text-gray-800"
+                    }`}
+                  >
                     Your Mental Wellness Overview
                   </h2>
                 </div>
                 {!checkInCompleted && (
                   <button
-                    onClick={() => setActiveSection('check-in')}
-                    className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'} flex items-center`}
+                    onClick={() => setActiveSection("check-in")}
+                    className={`px-4 py-2 rounded-lg ${
+                      darkMode
+                        ? "bg-violet-600 text-white hover:bg-violet-700"
+                        : "bg-violet-500 text-white hover:bg-violet-600"
+                    } flex items-center`}
                   >
                     <Heart size={18} className="mr-2" />
                     Start Daily Check-in
@@ -673,33 +995,66 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
 
               {/* Wellbeing Score */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+                <div
+                  className={`p-6 rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md`}
+                >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                      <h3
+                        className={`text-lg font-semibold ${
+                          darkMode ? "text-white" : "text-gray-800"
+                        }`}
+                      >
                         Wellbeing Score
                       </h3>
-                      <p className={`text-4xl font-bold ${darkMode ? 'text-violet-400' : 'text-violet-600'}`}>
+                      <p
+                        className={`text-4xl font-bold ${
+                          darkMode ? "text-violet-400" : "text-violet-600"
+                        }`}
+                      >
                         {wellbeingScore.toFixed(1)}
                       </p>
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <p
+                        className={`text-sm ${
+                          darkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
                         Based on your recent data
                       </p>
                     </div>
-                    <Award size={40} className={`${darkMode ? 'text-violet-400' : 'text-violet-500'}`} />
+                    <Award
+                      size={40}
+                      className={`${
+                        darkMode ? "text-violet-400" : "text-violet-500"
+                      }`}
+                    />
                   </div>
                 </div>
 
                 {/* Mood Trend */}
-                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md col-span-2`}>
+                <div
+                  className={`p-6 rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md col-span-2`}
+                >
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    <h3
+                      className={`text-lg font-semibold ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
                       Mood Trend
                     </h3>
                     <select
                       value={selectedTimeRange}
                       onChange={(e) => setSelectedTimeRange(e.target.value)}
-                      className={`text-sm p-1 rounded ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
+                      className={`text-sm p-1 rounded ${
+                        darkMode
+                          ? "bg-gray-700 text-gray-300"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
                     >
                       <option value="week">Weekly</option>
                       <option value="month">Monthly</option>
@@ -707,18 +1062,21 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                   </div>
                   <ResponsiveContainer width="100%" height={200}>
                     <LineChart data={moodDataForChart}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#374151' : '#e5e7eb'} />
-                      <XAxis
-                        dataKey={selectedTimeRange === 'week' ? 'day' : 'week'}
-                        stroke={darkMode ? '#9ca3af' : '#6b7280'}
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={darkMode ? "#374151" : "#e5e7eb"}
                       />
-                      <YAxis stroke={darkMode ? '#9ca3af' : '#6b7280'} />
+                      <XAxis
+                        dataKey={selectedTimeRange === "week" ? "day" : "week"}
+                        stroke={darkMode ? "#9ca3af" : "#6b7280"}
+                      />
+                      <YAxis stroke={darkMode ? "#9ca3af" : "#6b7280"} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          color: darkMode ? '#ffffff' : '#1f2937',
+                          backgroundColor: darkMode ? "#1f2937" : "#ffffff",
+                          border: "none",
+                          borderRadius: "8px",
+                          color: darkMode ? "#ffffff" : "#1f2937",
                         }}
                       />
                       <Line
@@ -744,8 +1102,16 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
               {/* Wellbeing Factors and Recommendations */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {/* Wellbeing Factors */}
-                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                <div
+                  className={`p-6 rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md`}
+                >
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${
+                      darkMode ? "text-white" : "text-gray-800"
+                    }`}
+                  >
                     Wellbeing Factors
                   </h3>
                   <ResponsiveContainer width="100%" height={250}>
@@ -760,15 +1126,18 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                         label
                       >
                         {wellbeingFactors.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
                         ))}
                       </Pie>
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          color: darkMode ? '#ffffff' : '#1f2937',
+                          backgroundColor: darkMode ? "#1f2937" : "#ffffff",
+                          border: "none",
+                          borderRadius: "8px",
+                          color: darkMode ? "#ffffff" : "#1f2937",
                         }}
                       />
                       <Legend />
@@ -777,22 +1146,40 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                 </div>
 
                 {/* Recommendations */}
-                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                <div
+                  className={`p-6 rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md`}
+                >
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${
+                      darkMode ? "text-white" : "text-gray-800"
+                    }`}
+                  >
                     Personalized Recommendations
                   </h3>
                   <div className="space-y-4">
                     {recommendations.map((rec, index) => (
                       <div
                         key={index}
-                        className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'} flex items-start`}
+                        className={`p-4 rounded-lg ${
+                          darkMode ? "bg-gray-700" : "bg-violet-50"
+                        } flex items-start`}
                       >
                         <div className="mr-3">{rec.icon}</div>
                         <div>
-                          <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                          <h4
+                            className={`font-medium ${
+                              darkMode ? "text-gray-200" : "text-gray-800"
+                            }`}
+                          >
                             {rec.title}
                           </h4>
-                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <p
+                            className={`text-sm ${
+                              darkMode ? "text-gray-400" : "text-gray-600"
+                            }`}
+                          >
                             {rec.content}
                           </p>
                         </div>
@@ -803,15 +1190,27 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
               </div>
 
               {/* Self-Care Activities */}
-              <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-                <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <div
+                className={`p-6 rounded-lg ${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                } shadow-md`}
+              >
+                <h3
+                  className={`text-lg font-semibold mb-4 ${
+                    darkMode ? "text-white" : "text-gray-800"
+                  }`}
+                >
                   Your Self-Care Activities
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {selfCareActivities.map((activity, index) => (
                     <div
                       key={index}
-                      className={`p-4 rounded-lg text-center ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-violet-100 text-violet-700'}`}
+                      className={`p-4 rounded-lg text-center ${
+                        darkMode
+                          ? "bg-gray-700 text-gray-300"
+                          : "bg-violet-100 text-violet-700"
+                      }`}
                     >
                       <Activity size={24} className="mx-auto mb-2" />
                       <p className="font-medium">{activity}</p>
@@ -820,24 +1219,35 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                <div
+                  className={`p-6 rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md`}
+                >
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${
+                      darkMode ? "text-white" : "text-gray-800"
+                    }`}
+                  >
                     Mood & Anxiety Trends
                   </h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <AreaChart data={moodDataForChart}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#374151' : '#e5e7eb'} />
-                      <XAxis
-                        dataKey={selectedTimeRange === 'week' ? 'day' : 'week'}
-                        stroke={darkMode ? '#9ca3af' : '#6b7280'}
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={darkMode ? "#374151" : "#e5e7eb"}
                       />
-                      <YAxis stroke={darkMode ? '#9ca3af' : '#6b7280'} />
+                      <XAxis
+                        dataKey={selectedTimeRange === "week" ? "day" : "week"}
+                        stroke={darkMode ? "#9ca3af" : "#6b7280"}
+                      />
+                      <YAxis stroke={darkMode ? "#9ca3af" : "#6b7280"} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          color: darkMode ? '#ffffff' : '#1f2937',
+                          backgroundColor: darkMode ? "#1f2937" : "#ffffff",
+                          border: "none",
+                          borderRadius: "8px",
+                          color: darkMode ? "#ffffff" : "#1f2937",
                         }}
                       />
                       <Area
@@ -861,24 +1271,42 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                   </ResponsiveContainer>
                 </div>
 
-                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                <div
+                  className={`p-6 rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md`}
+                >
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${
+                      darkMode ? "text-white" : "text-gray-800"
+                    }`}
+                  >
                     Wellbeing Factors Comparison
                   </h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={wellbeingFactors}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#374151' : '#e5e7eb'} />
-                      <XAxis dataKey="name" stroke={darkMode ? '#9ca3af' : '#6b7280'} />
-                      <YAxis stroke={darkMode ? '#9ca3af' : '#6b7280'} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={darkMode ? "#374151" : "#e5e7eb"}
+                      />
+                      <XAxis
+                        dataKey="name"
+                        stroke={darkMode ? "#9ca3af" : "#6b7280"}
+                      />
+                      <YAxis stroke={darkMode ? "#9ca3af" : "#6b7280"} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          color: darkMode ? '#ffffff' : '#1f2937',
+                          backgroundColor: darkMode ? "#1f2937" : "#ffffff",
+                          border: "none",
+                          borderRadius: "8px",
+                          color: darkMode ? "#ffffff" : "#1f2937",
                         }}
                       />
-                      <Bar dataKey="value" fill={MOOD_COLORS.score} name="Factor Strength" />
+                      <Bar
+                        dataKey="value"
+                        fill={MOOD_COLORS.score}
+                        name="Factor Strength"
+                      />
                       <Legend />
                     </BarChart>
                   </ResponsiveContainer>
@@ -888,31 +1316,46 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
           )}
 
           {/* Other sections remain the same */}
-          {activeSection === 'check-in' && <Chat darkMode={darkMode} />}
-          {activeSection === 'insights' && (
+          {activeSection === "check-in" && <Chat darkMode={darkMode} />}
+          {/* {activeSection === "insights" && (
             <div className="p-6">
-              <h2 className={`text-2xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <h2
+                className={`text-2xl font-semibold mb-6 ${
+                  darkMode ? "text-white" : "text-gray-800"
+                }`}
+              >
                 Mental Health Insights
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                <div
+                  className={`p-6 rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md`}
+                >
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${
+                      darkMode ? "text-white" : "text-gray-800"
+                    }`}
+                  >
                     Mood & Anxiety Trends
                   </h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <AreaChart data={moodDataForChart}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#374151' : '#e5e7eb'} />
-                      <XAxis
-                        dataKey={selectedTimeRange === 'week' ? 'day' : 'week'}
-                        stroke={darkMode ? '#9ca3af' : '#6b7280'}
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={darkMode ? "#374151" : "#e5e7eb"}
                       />
-                      <YAxis stroke={darkMode ? '#9ca3af' : '#6b7280'} />
+                      <XAxis
+                        dataKey={selectedTimeRange === "week" ? "day" : "week"}
+                        stroke={darkMode ? "#9ca3af" : "#6b7280"}
+                      />
+                      <YAxis stroke={darkMode ? "#9ca3af" : "#6b7280"} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          color: darkMode ? '#ffffff' : '#1f2937',
+                          backgroundColor: darkMode ? "#1f2937" : "#ffffff",
+                          border: "none",
+                          borderRadius: "8px",
+                          color: darkMode ? "#ffffff" : "#1f2937",
                         }}
                       />
                       <Area
@@ -936,83 +1379,163 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                   </ResponsiveContainer>
                 </div>
 
-                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                <div
+                  className={`p-6 rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md`}
+                >
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${
+                      darkMode ? "text-white" : "text-gray-800"
+                    }`}
+                  >
                     Wellbeing Factors Comparison
                   </h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={wellbeingFactors}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#374151' : '#e5e7eb'} />
-                      <XAxis dataKey="name" stroke={darkMode ? '#9ca3af' : '#6b7280'} />
-                      <YAxis stroke={darkMode ? '#9ca3af' : '#6b7280'} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={darkMode ? "#374151" : "#e5e7eb"}
+                      />
+                      <XAxis
+                        dataKey="name"
+                        stroke={darkMode ? "#9ca3af" : "#6b7280"}
+                      />
+                      <YAxis stroke={darkMode ? "#9ca3af" : "#6b7280"} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          color: darkMode ? '#ffffff' : '#1f2937',
+                          backgroundColor: darkMode ? "#1f2937" : "#ffffff",
+                          border: "none",
+                          borderRadius: "8px",
+                          color: darkMode ? "#ffffff" : "#1f2937",
                         }}
                       />
-                      <Bar dataKey="value" fill={MOOD_COLORS.score} name="Factor Strength" />
+                      <Bar
+                        dataKey="value"
+                        fill={MOOD_COLORS.score}
+                        name="Factor Strength"
+                      />
                       <Legend />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             </div>
-          )}
-          {activeSection === 'MoodLifter Games' && (
+          )} */}
+          {activeSection === "MoodLifter Games" && (
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  <h2
+                    className={`text-2xl font-semibold ${
+                      darkMode ? "text-white" : "text-gray-800"
+                    }`}
+                  >
                     MoodLifter Games
                   </h2>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <p
+                    className={`text-sm ${
+                      darkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
                     Engage with games that boost your mood and mental wellbeing
                   </p>
                 </div>
               </div>
 
               {/* Game Categories */}
-              <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md mb-6`}>
-                <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <div
+                className={`p-6 rounded-lg ${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                } shadow-md mb-6`}
+              >
+                <h3
+                  className={`text-lg font-semibold mb-4 ${
+                    darkMode ? "text-white" : "text-gray-800"
+                  }`}
+                >
                   Recommended Game Categories
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {['Relaxation', 'Cognitive', 'Mindfulness', 'Creative'].map((category, index) => (
-                    <div
-                      key={index}
-                      className={`p-4 rounded-lg text-center ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-violet-100 text-violet-700'}`}
-                    >
-                      <Book size={24} className="mx-auto mb-2" />
-                      <p className="font-medium">{category}</p>
-                    </div>
-                  ))}
+                  {["Relaxation", "Cognitive", "Mindfulness", "Creative"].map(
+                    (category, index) => (
+                      <div
+                        key={index}
+                        className={`p-4 rounded-lg text-center ${
+                          darkMode
+                            ? "bg-gray-700 text-gray-300"
+                            : "bg-violet-100 text-violet-700"
+                        }`}
+                      >
+                        <Book size={24} className="mx-auto mb-2" />
+                        <p className="font-medium">{category}</p>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
 
               {/* Games Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Game 1 */}
-                <div className={`rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md overflow-hidden`}>
+                <div
+                  className={`rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md overflow-hidden`}
+                >
                   <div className="h-48 bg-violet-300 flex items-center justify-center">
-                    <Music size={48} className={`${darkMode ? 'text-gray-800' : 'text-violet-800'}`} />
+                    <Music
+                      size={48}
+                      className={`${
+                        darkMode ? "text-gray-800" : "text-violet-800"
+                      }`}
+                    />
                   </div>
                   <div className="p-4">
-                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Melody Match</h3>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
-                      A musical game that helps reduce anxiety through sound patterns.
+                    <h3
+                      className={`text-lg font-semibold ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      Melody Match
+                    </h3>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      } mb-3`}
+                    >
+                      A musical game that helps reduce anxiety through sound
+                      patterns.
                     </p>
                     <div className="flex items-center text-sm mb-4">
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-violet-900 text-violet-300' : 'bg-violet-100 text-violet-700'} mr-2`}>Relaxation</span>
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-violet-900 text-violet-300' : 'bg-violet-100 text-violet-700'}`}>Auditory</span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-violet-900 text-violet-300"
+                            : "bg-violet-100 text-violet-700"
+                        } mr-2`}
+                      >
+                        Relaxation
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-violet-900 text-violet-300"
+                            : "bg-violet-100 text-violet-700"
+                        }`}
+                      >
+                        Auditory
+                      </span>
                     </div>
                     <a
                       href="https://www.crazygames.com/game/perfect-piano"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`block w-full text-center py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-violet-500 text-white hover:bg-violet-600'}`}
+                      className={`block w-full text-center py-2 rounded-lg ${
+                        darkMode
+                          ? "bg-violet-600 text-white hover:bg-violet-700"
+                          : "bg-violet-500 text-white hover:bg-violet-600"
+                      }`}
                     >
                       Play Now
                     </a>
@@ -1020,24 +1543,64 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                 </div>
 
                 {/* Game 2 */}
-                <div className={`rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md overflow-hidden`}>
+                <div
+                  className={`rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md overflow-hidden`}
+                >
                   <div className="h-48 bg-blue-300 flex items-center justify-center">
-                    <Dumbbell size={48} className={`${darkMode ? 'text-gray-800' : 'text-blue-800'}`} />
+                    <Dumbbell
+                      size={48}
+                      className={`${
+                        darkMode ? "text-gray-800" : "text-blue-800"
+                      }`}
+                    />
                   </div>
                   <div className="p-4">
-                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Brain Gym</h3>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
-                      Puzzles and challenges to strengthen cognitive abilities and focus.
+                    <h3
+                      className={`text-lg font-semibold ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      Brain Gym
+                    </h3>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      } mb-3`}
+                    >
+                      Puzzles and challenges to strengthen cognitive abilities
+                      and focus.
                     </p>
                     <div className="flex items-center text-sm mb-4">
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'} mr-2`}>Cognitive</span>
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>Problem-solving</span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-blue-900 text-blue-300"
+                            : "bg-blue-100 text-blue-700"
+                        } mr-2`}
+                      >
+                        Cognitive
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-blue-900 text-blue-300"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
+                        Problem-solving
+                      </span>
                     </div>
                     <a
                       href="https://www.crazygames.com/t/brain"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`block w-full text-center py-2 rounded-lg ${darkMode ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                      className={`block w-full text-center py-2 rounded-lg ${
+                        darkMode
+                          ? "bg-blue-600 text-white hover:bg-blue-700"
+                          : "bg-blue-500 text-white hover:bg-blue-600"
+                      }`}
                     >
                       Play Now
                     </a>
@@ -1045,24 +1608,64 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                 </div>
 
                 {/* Game 3 */}
-                <div className={`rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md overflow-hidden`}>
+                <div
+                  className={`rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md overflow-hidden`}
+                >
                   <div className="h-48 bg-green-300 flex items-center justify-center">
-                    <Heart size={48} className={`${darkMode ? 'text-gray-800' : 'text-green-800'}`} />
+                    <Heart
+                      size={48}
+                      className={`${
+                        darkMode ? "text-gray-800" : "text-green-800"
+                      }`}
+                    />
                   </div>
                   <div className="p-4">
-                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Breath Quest</h3>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
-                      An interactive journey through breathing exercises and visualization.
+                    <h3
+                      className={`text-lg font-semibold ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      Breath Quest
+                    </h3>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      } mb-3`}
+                    >
+                      An interactive journey through breathing exercises and
+                      visualization.
                     </p>
                     <div className="flex items-center text-sm mb-4">
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'} mr-2`}>Mindfulness</span>
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>Breathing</span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-green-900 text-green-300"
+                            : "bg-green-100 text-green-700"
+                        } mr-2`}
+                      >
+                        Mindfulness
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-green-900 text-green-300"
+                            : "bg-green-100 text-green-700"
+                        }`}
+                      >
+                        Breathing
+                      </span>
                     </div>
                     <a
                       href="https://ported-from-scratch.itch.io/breathing-simulator-2"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`block w-full text-center py-2 rounded-lg ${darkMode ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-green-500 text-white hover:bg-green-600'}`}
+                      className={`block w-full text-center py-2 rounded-lg ${
+                        darkMode
+                          ? "bg-green-600 text-white hover:bg-green-700"
+                          : "bg-green-500 text-white hover:bg-green-600"
+                      }`}
                     >
                       Play Now
                     </a>
@@ -1070,24 +1673,64 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                 </div>
 
                 {/* Game 4 */}
-                <div className={`rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md overflow-hidden`}>
+                <div
+                  className={`rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md overflow-hidden`}
+                >
                   <div className="h-48 bg-yellow-300 flex items-center justify-center">
-                    <Sun size={48} className={`${darkMode ? 'text-gray-800' : 'text-yellow-800'}`} />
+                    <Sun
+                      size={48}
+                      className={`${
+                        darkMode ? "text-gray-800" : "text-yellow-800"
+                      }`}
+                    />
                   </div>
                   <div className="p-4">
-                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Mood Canvas</h3>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
-                      Express emotions through color and art in this creative gameplay.
+                    <h3
+                      className={`text-lg font-semibold ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      Mood Canvas
+                    </h3>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      } mb-3`}
+                    >
+                      Express emotions through color and art in this creative
+                      gameplay.
                     </p>
                     <div className="flex items-center text-sm mb-4">
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-700'} mr-2`}>Creative</span>
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-yellow-900 text-yellow-300' : 'bg-yellow-100 text-yellow-700'}`}>Artistic</span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-yellow-900 text-yellow-300"
+                            : "bg-yellow-100 text-yellow-700"
+                        } mr-2`}
+                      >
+                        Creative
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-yellow-900 text-yellow-300"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        Artistic
+                      </span>
                     </div>
                     <a
                       href="https://drawception.com/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`block w-full text-center py-2 rounded-lg ${darkMode ? 'bg-yellow-600 text-white hover:bg-yellow-700' : 'bg-yellow-500 text-white hover:bg-yellow-600'}`}
+                      className={`block w-full text-center py-2 rounded-lg ${
+                        darkMode
+                          ? "bg-yellow-600 text-white hover:bg-yellow-700"
+                          : "bg-yellow-500 text-white hover:bg-yellow-600"
+                      }`}
                     >
                       Play Now
                     </a>
@@ -1095,24 +1738,64 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                 </div>
 
                 {/* Game 5 */}
-                <div className={`rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md overflow-hidden`}>
+                <div
+                  className={`rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md overflow-hidden`}
+                >
                   <div className="h-48 bg-purple-300 flex items-center justify-center">
-                    <Clock size={48} className={`${darkMode ? 'text-gray-800' : 'text-purple-800'}`} />
+                    <Clock
+                      size={48}
+                      className={`${
+                        darkMode ? "text-gray-800" : "text-purple-800"
+                      }`}
+                    />
                   </div>
                   <div className="p-4">
-                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Present Moment</h3>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
-                      A mindfulness game that guides you through grounding exercises.
+                    <h3
+                      className={`text-lg font-semibold ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      Present Moment
+                    </h3>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      } mb-3`}
+                    >
+                      A mindfulness game that guides you through grounding
+                      exercises.
                     </p>
                     <div className="flex items-center text-sm mb-4">
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-700'} mr-2`}>Mindfulness</span>
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>Meditation</span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-purple-900 text-purple-300"
+                            : "bg-purple-100 text-purple-700"
+                        } mr-2`}
+                      >
+                        Mindfulness
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-purple-900 text-purple-300"
+                            : "bg-purple-100 text-purple-700"
+                        }`}
+                      >
+                        Meditation
+                      </span>
                     </div>
                     <a
                       href="https://sites.google.com/fuhsd.org/virtualmindfulnessroom/puzzles-games"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`block w-full text-center py-2 rounded-lg ${darkMode ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-purple-500 text-white hover:bg-purple-600'}`}
+                      className={`block w-full text-center py-2 rounded-lg ${
+                        darkMode
+                          ? "bg-purple-600 text-white hover:bg-purple-700"
+                          : "bg-purple-500 text-white hover:bg-purple-600"
+                      }`}
                     >
                       Play Now
                     </a>
@@ -1120,24 +1803,64 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                 </div>
 
                 {/* Game 6 */}
-                <div className={`rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md overflow-hidden`}>
+                <div
+                  className={`rounded-lg ${
+                    darkMode ? "bg-gray-800" : "bg-white"
+                  } shadow-md overflow-hidden`}
+                >
                   <div className="h-48 bg-red-300 flex items-center justify-center">
-                    <Activity size={48} className={`${darkMode ? 'text-gray-800' : 'text-red-800'}`} />
+                    <Activity
+                      size={48}
+                      className={`${
+                        darkMode ? "text-gray-800" : "text-red-800"
+                      }`}
+                    />
                   </div>
                   <div className="p-4">
-                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Emotional Journey</h3>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-3`}>
-                      Navigate a narrative adventure that helps process emotions.
+                    <h3
+                      className={`text-lg font-semibold ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      Emotional Journey
+                    </h3>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      } mb-3`}
+                    >
+                      Navigate a narrative adventure that helps process
+                      emotions.
                     </p>
                     <div className="flex items-center text-sm mb-4">
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-red-900 text-red-300' : 'bg-red-100 text-red-700'} mr-2`}>Emotional</span>
-                      <span className={`px-2 py-1 rounded ${darkMode ? 'bg-red-900 text-red-300' : 'bg-red-100 text-red-700'}`}>Narrative</span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-red-900 text-red-300"
+                            : "bg-red-100 text-red-700"
+                        } mr-2`}
+                      >
+                        Emotional
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded ${
+                          darkMode
+                            ? "bg-red-900 text-red-300"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        Narrative
+                      </span>
                     </div>
                     <a
                       href="https://itch.io/jam/rpg-maker-2025-game-jam"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`block w-full text-center py-2 rounded-lg ${darkMode ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-500 text-white hover:bg-red-600'}`}
+                      className={`block w-full text-center py-2 rounded-lg ${
+                        darkMode
+                          ? "bg-red-600 text-white hover:bg-red-700"
+                          : "bg-red-500 text-white hover:bg-red-600"
+                      }`}
                     >
                       Play Now
                     </a>
@@ -1146,12 +1869,26 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
               </div>
 
               {/* Daily Game Recommendation */}
-              <div className={`mt-6 p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+              <div
+                className={`mt-6 p-6 rounded-lg ${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                } shadow-md`}
+              >
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  <h3
+                    className={`text-lg font-semibold ${
+                      darkMode ? "text-white" : "text-gray-800"
+                    }`}
+                  >
                     Today's Recommended Game
                   </h3>
-                  <span className={`px-3 py-1 rounded-full ${darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full ${
+                      darkMode
+                        ? "bg-green-900 text-green-300"
+                        : "bg-green-100 text-green-700"
+                    }`}
+                  >
                     Personalized
                   </span>
                 </div>
@@ -1160,9 +1897,12 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
                     <Award size={36} className="text-violet-500" />
                   </div>
                   <div className="text-center md:text-left">
-                    <h4 className="text-xl font-semibold text-white mb-2">Gratitude Garden</h4>
+                    <h4 className="text-xl font-semibold text-white mb-2">
+                      Gratitude Garden
+                    </h4>
                     <p className="text-white text-opacity-90 mb-4">
-                      Build a beautiful garden by planting seeds of gratitude. Each entry helps your garden grow!
+                      Build a beautiful garden by planting seeds of gratitude.
+                      Each entry helps your garden grow!
                     </p>
                     <a
                       href="https://www.happify.com"
@@ -1177,29 +1917,96 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
               </div>
 
               {/* Benefits Section */}
-              <div className={`mt-6 p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-                <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <div
+                className={`mt-6 p-6 rounded-lg ${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                } shadow-md`}
+              >
+                <h3
+                  className={`text-lg font-semibold mb-4 ${
+                    darkMode ? "text-white" : "text-gray-800"
+                  }`}
+                >
                   Benefits of Playing Mood-Enhancing Games
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-                    <CheckCircle size={24} className={`${darkMode ? 'text-green-400' : 'text-green-500'} mb-2`} />
-                    <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>Reduced Anxiety</h4>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Games can help redirect focus away from stressful thoughts.
+                  <div
+                    className={`p-4 rounded-lg ${
+                      darkMode ? "bg-gray-700" : "bg-violet-50"
+                    }`}
+                  >
+                    <CheckCircle
+                      size={24}
+                      className={`${
+                        darkMode ? "text-green-400" : "text-green-500"
+                      } mb-2`}
+                    />
+                    <h4
+                      className={`font-medium ${
+                        darkMode ? "text-gray-200" : "text-gray-800"
+                      } mb-1`}
+                    >
+                      Reduced Anxiety
+                    </h4>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Games can help redirect focus away from stressful
+                      thoughts.
                     </p>
                   </div>
-                  <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-                    <CheckCircle size={24} className={`${darkMode ? 'text-green-400' : 'text-green-500'} mb-2`} />
-                    <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>Improved Focus</h4>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Regular gameplay can enhance concentration and attention spans.
+                  <div
+                    className={`p-4 rounded-lg ${
+                      darkMode ? "bg-gray-700" : "bg-violet-50"
+                    }`}
+                  >
+                    <CheckCircle
+                      size={24}
+                      className={`${
+                        darkMode ? "text-green-400" : "text-green-500"
+                      } mb-2`}
+                    />
+                    <h4
+                      className={`font-medium ${
+                        darkMode ? "text-gray-200" : "text-gray-800"
+                      } mb-1`}
+                    >
+                      Improved Focus
+                    </h4>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Regular gameplay can enhance concentration and attention
+                      spans.
                     </p>
                   </div>
-                  <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-violet-50'}`}>
-                    <CheckCircle size={24} className={`${darkMode ? 'text-green-400' : 'text-green-500'} mb-2`} />
-                    <h4 className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1`}>Emotion Regulation</h4>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <div
+                    className={`p-4 rounded-lg ${
+                      darkMode ? "bg-gray-700" : "bg-violet-50"
+                    }`}
+                  >
+                    <CheckCircle
+                      size={24}
+                      className={`${
+                        darkMode ? "text-green-400" : "text-green-500"
+                      } mb-2`}
+                    />
+                    <h4
+                      className={`font-medium ${
+                        darkMode ? "text-gray-200" : "text-gray-800"
+                      } mb-1`}
+                    >
+                      Emotion Regulation
+                    </h4>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
                       Games provide safe spaces to process and express emotions.
                     </p>
                   </div>
@@ -1208,45 +2015,100 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
             </div>
           )}
 
-          {activeSection === 'profile' && (
+          {activeSection === "profile" && (
             <div className="p-6 max-w-2xl mx-auto">
-              <h2 className={`text-2xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <h2
+                className={`text-2xl font-semibold mb-6 ${
+                  darkMode ? "text-white" : "text-gray-800"
+                }`}
+              >
                 Your Profile
               </h2>
-              <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+              <div
+                className={`p-6 rounded-lg ${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                } shadow-md`}
+              >
                 <div className="space-y-4">
                   <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Profession</p>
-                    <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                      {userData?.profession || 'Not specified'}
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Profession
+                    </p>
+                    <p
+                      className={`font-medium ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      {userData?.profession || "Not specified"}
                     </p>
                   </div>
                   <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Age Range</p>
-                    <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                      {userData?.age || 'Not specified'}
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Age Range
+                    </p>
+                    <p
+                      className={`font-medium ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      {userData?.age || "Not specified"}
                     </p>
                   </div>
                   <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Gender</p>
-                    <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                      {userData?.gender || 'Not specified'}
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Gender
+                    </p>
+                    <p
+                      className={`font-medium ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      {userData?.gender || "Not specified"}
                     </p>
                   </div>
                   <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
                       Coping Mechanisms
                     </p>
-                    <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                      {userData?.coping_mechanisms?.join(', ') || 'Not specified'}
+                    <p
+                      className={`font-medium ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      {userData?.coping_mechanisms?.join(", ") ||
+                        "Not specified"}
                     </p>
                   </div>
                   <div>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <p
+                      className={`text-sm ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
                       Favorite Music Genres
                     </p>
-                    <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                      {userData?.music_genres?.join(', ') || 'Not specified'}
+                    <p
+                      className={`font-medium ${
+                        darkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
+                      {userData?.music_genres?.join(", ") || "Not specified"}
                     </p>
                   </div>
                 </div>
@@ -1254,40 +2116,72 @@ export default function EnhancedMentalHealthDashboard({ userId }) { // Assume us
             </div>
           )}
 
-          {activeSection === 'settings' && (
+          {activeSection === "settings" && (
             <div className="p-6 max-w-2xl mx-auto">
-              <h2 className={`text-2xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <h2
+                className={`text-2xl font-semibold mb-6 ${
+                  darkMode ? "text-white" : "text-gray-800"
+                }`}
+              >
                 Settings
               </h2>
-              <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+              <div
+                className={`p-6 rounded-lg ${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                } shadow-md`}
+              >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                      <p
+                        className={`font-medium ${
+                          darkMode ? "text-white" : "text-gray-800"
+                        }`}
+                      >
                         Dark Mode
                       </p>
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <p
+                        className={`text-sm ${
+                          darkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
                         Switch between light and dark themes
                       </p>
                     </div>
                     <button
                       onClick={() => setDarkMode(!darkMode)}
-                      className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-violet-600 text-white' : 'bg-violet-500 text-white'}`}
+                      className={`px-4 py-2 rounded-lg ${
+                        darkMode
+                          ? "bg-violet-600 text-white"
+                          : "bg-violet-500 text-white"
+                      }`}
                     >
-                      {darkMode ? 'Switch to Light' : 'Switch to Dark'}
+                      {darkMode ? "Switch to Light" : "Switch to Dark"}
                     </button>
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                      <p
+                        className={`font-medium ${
+                          darkMode ? "text-white" : "text-gray-800"
+                        }`}
+                      >
                         Log Out
                       </p>
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <p
+                        className={`text-sm ${
+                          darkMode ? "text-gray-400" : "text-gray-600"
+                        }`}
+                      >
                         Sign out of your account
                       </p>
                     </div>
                     <button
-                      className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-500 text-white hover:bg-red-600'}`}
+                      className={`px-4 py-2 rounded-lg ${
+                        darkMode
+                          ? "bg-red-600 text-white hover:bg-red-700"
+                          : "bg-red-500 text-white hover:bg-red-600"
+                      }`}
                     >
                       Log Out
                     </button>
