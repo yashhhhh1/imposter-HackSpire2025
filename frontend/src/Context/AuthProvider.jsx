@@ -124,7 +124,7 @@ const login = (email, password) => {
         // Get JWT token when user is authenticated
         const userInfo = { email: currentUser.email };
         
-        axios.post('http://localhost:8080/jwt', userInfo)
+        axios.post('http://localhost:3000/jwt', userInfo)
           .then((response) => {
             if (response.data.token) {
               localStorage.setItem('access-token', response.data.token);

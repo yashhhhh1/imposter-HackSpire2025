@@ -113,12 +113,12 @@ const AuthPage = () => {
   // Render forgot password form
   if (showForgotPassword) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-black to-gray-800">
-        <div className="w-full max-w-md space-y-6 rounded-lg bg-white/10 p-8 shadow-lg backdrop-blur-md">
-          <h2 className="text-center text-3xl font-bold text-white">Reset Password</h2>
+      <div className="flex h-screen items-center justify-center bg-white">
+        <div className="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-xl border border-violet-100">
+          <h2 className="text-center text-3xl font-bold text-gray-800">Reset Password</h2>
           
           {error && (
-            <div className="rounded-md bg-red-500/20 p-3 text-white">
+            <div className="rounded-md bg-red-50 p-3 text-red-600 border border-red-200">
               {error}
             </div>
           )}
@@ -129,14 +129,14 @@ const AuthPage = () => {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-white/20 bg-white/20 px-4 py-2 text-white placeholder-white/70 outline-none focus:border-white focus:ring-2 focus:ring-white/50"
+              className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 placeholder-gray-400 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-200"
               required
             />
             
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full rounded-md bg-white/20 px-4 py-2 text-white transition-all duration-200 hover:bg-white/30 disabled:opacity-50"
+              className="w-full rounded-md bg-violet-500 px-4 py-2 text-white transition-all duration-200 hover:bg-violet-600 disabled:opacity-50"
             >
               {isSubmitting ? "Sending..." : "Send Reset Link"}
             </button>
@@ -145,7 +145,7 @@ const AuthPage = () => {
           <div className="text-center">
             <button
               onClick={() => setShowForgotPassword(false)}
-              className="text-sm text-white/80 hover:underline"
+              className="text-sm text-violet-600 hover:underline"
             >
               Back to login
             </button>
@@ -157,14 +157,14 @@ const AuthPage = () => {
 
   // Regular login/signup form
   return (
-    <div className="flex h-screen items-center justify-center bg-gradient-to-br from-black to-gray-800">
-      <div className="w-full max-w-md space-y-6 rounded-lg bg-white/10 p-8 shadow-lg backdrop-blur-md">
-        <h2 className="text-center text-3xl font-bold text-white">
+    <div className="flex h-screen items-center justify-center bg-white">
+      <div className="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-xl border border-violet-100">
+        <h2 className="text-center text-3xl font-bold text-gray-800">
           {isLogin ? "Sign In" : "Sign Up"}
         </h2>
         
         {error && (
-          <div className="rounded-md bg-red-500/20 p-3 text-white">
+          <div className="rounded-md bg-red-50 p-3 text-red-600 border border-red-200">
             {error}
           </div>
         )}
@@ -176,7 +176,7 @@ const AuthPage = () => {
               placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-white/20 bg-white/20 px-4 py-2 text-white placeholder-white/70 outline-none focus:border-white focus:ring-2 focus:ring-white/50"
+              className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 placeholder-gray-400 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-200"
               required
             />
           )}
@@ -185,7 +185,7 @@ const AuthPage = () => {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-md border border-white/20 bg-white/20 px-4 py-2 text-white placeholder-white/70 outline-none focus:border-white focus:ring-2 focus:ring-white/50"
+            className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 placeholder-gray-400 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-200"
             required
           />  
           <input
@@ -193,14 +193,14 @@ const AuthPage = () => {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-md border border-white/20 bg-white/20 px-4 py-2 text-white placeholder-white/70 outline-none focus:border-white focus:ring-2 focus:ring-white/50"
+            className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 placeholder-gray-400 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-200"
             required
           />
           
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-md bg-white/20 px-4 py-2 text-white transition-all duration-200 hover:bg-white/30 disabled:opacity-50"
+            className="w-full rounded-md bg-violet-500 px-4 py-2 text-white transition-all duration-200 hover:bg-violet-600 disabled:opacity-50"
           >
             {isSubmitting ? "Processing..." : isLogin ? "Sign In" : "Sign Up"}
           </button>
@@ -209,7 +209,7 @@ const AuthPage = () => {
         <div className="flex justify-between text-center">
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-white/80 hover:underline"
+            className="text-sm text-violet-600 hover:underline"
           >
             {isLogin
               ? "Don't have an account? Sign Up"
@@ -219,7 +219,7 @@ const AuthPage = () => {
           {isLogin && (
             <button
               onClick={() => setShowForgotPassword(true)}
-              className="text-sm text-white/80 hover:underline"
+              className="text-sm text-violet-600 hover:underline"
             >
               Forgot Password?
             </button>
@@ -227,9 +227,9 @@ const AuthPage = () => {
         </div>
 
         <div className="relative flex items-center py-2">
-          <div className="flex-grow border-t border-white/20"></div>
-          <span className="mx-4 flex-shrink text-white/60">or</span>
-          <div className="flex-grow border-t border-white/20"></div>
+          <div className="flex-grow border-t border-gray-200"></div>
+          <span className="mx-4 flex-shrink text-gray-500">or</span>
+          <div className="flex-grow border-t border-gray-200"></div>
         </div>
 
         <div className="space-y-4">
@@ -237,7 +237,7 @@ const AuthPage = () => {
           <button
             onClick={() => handleSocialSignIn('google')}
             disabled={isSubmitting}
-            className="flex w-full items-center justify-center rounded-lg bg-white/20 px-4 py-2 text-white shadow-md transition-all duration-200 hover:bg-white/30 disabled:opacity-50"
+            className="flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 disabled:opacity-50"
           >
             <span>Sign in with Google</span>
           </button>
@@ -246,7 +246,7 @@ const AuthPage = () => {
           <button
             onClick={() => handleSocialSignIn('github')}
             disabled={isSubmitting}
-            className="flex w-full items-center justify-center rounded-lg bg-white/20 px-4 py-2 text-white shadow-md transition-all duration-200 hover:bg-white/30 disabled:opacity-50"
+            className="flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm transition-all duration-200 hover:bg-gray-50 disabled:opacity-50"
           >
             <span>Sign in with GitHub</span>
           </button>

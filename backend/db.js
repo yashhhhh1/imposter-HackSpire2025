@@ -2,6 +2,8 @@
 const mongoose = require("mongoose");
 
 const connectDB = async () => {
+  console.log("Connecting to MongoDB...");
+  
   try {
     const uri =
       "mongodb+srv://yash:biGPQ6i7xhAiWYfD@yash.zhuoo9j.mongodb.net/?retryWrites=true&w=majority&appName=yash";

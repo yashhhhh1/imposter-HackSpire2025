@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const app = express();
+const connect = require('./db'); // Assuming you have a db.js file for MongoDB connection
+connect()
 
 // Middleware
 app.use(cors());

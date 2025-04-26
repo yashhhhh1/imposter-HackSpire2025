@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { Brain, Briefcase, Users, DumbbellIcon, Coffee, Leaf, AlertCircle } from "lucide-react";
-
+import { Link } from "react-router-dom";
 export default function OnboardingQuestions() {
   // Categories for the questions
   const categories = [
     { id: "intro", name: "Welcome", icon: <Brain className="w-6 h-6" /> },
-    { id: "profession", name: "Professional Life", icon: <Briefcase className="w-6 h-6" /> },
-    { id: "social", name: "Social Connections", icon: <Users className="w-6 h-6" /> },
-    { id: "lifestyle", name: "Lifestyle Habits", icon: <DumbbellIcon className="w-6 h-6" /> },
-    { id: "wellbeing", name: "Mental Wellbeing", icon: <Leaf className="w-6 h-6" /> },
-    { id: "conclusion", name: "Final Thoughts", icon: <Coffee className="w-6 h-6" /> },
+    // { id: "profession", name: "Professional Life", icon: <Briefcase className="w-6 h-6" /> },
+    // { id: "social", name: "Social Connections", icon: <Users className="w-6 h-6" /> },
+    // { id: "lifestyle", name: "Lifestyle Habits", icon: <DumbbellIcon className="w-6 h-6" /> },
+    // { id: "wellbeing", name: "Mental Wellbeing", icon: <Leaf className="w-6 h-6" /> },
+    // { id: "conclusion", name: "Final Thoughts", icon: <Coffee className="w-6 h-6" /> },
   ];
 
   // Questions organized by category
@@ -28,144 +28,6 @@ export default function OnboardingQuestions() {
         options: ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"],
       }
     ],
-    profession: [
-      {
-        id: "profession",
-        question: "What is your current profession or field of work?",
-        type: "text",
-        placeholder: "e.g. Healthcare, Technology, Education..."
-      },
-      {
-        id: "job_position",
-        question: "What is your current job title or role?",
-        type: "text",
-        placeholder: "e.g. Manager, Designer, Teacher..."
-      },
-      {
-        id: "financial_satisfaction",
-        question: "How satisfied are you with your current financial situation?",
-        type: "select",
-        options: ["Very Satisfied", "Satisfied", "Neutral", "Dissatisfied", "Very Dissatisfied"]
-      },
-      {
-        id: "working_hours",
-        question: "How many hours do you typically work per week?",
-        type: "select",
-        options: ["Less than 20 hours", "20–40 hours", "40–60 hours", "More than 60 hours"]
-      },
-      {
-        id: "work_environment",
-        question: "How would you describe your work environment?",
-        type: "select",
-        options: ["Very Supportive", "Somewhat Supportive", "Neutral", "Somewhat Stressful", "Very Stressful"]
-      }
-    ],
-    social: [
-      {
-        id: "family_support",
-        question: "How supported do you feel by your family?",
-        type: "select",
-        options: ["Very Supported", "Somewhat Supported", "Neutral", "Not Very Supported", "Not Supported At All"]
-      },
-      {
-        id: "social_life",
-        question: "How would you describe your social life?",
-        type: "select",
-        options: ["Very Active and Supportive", "Somewhat Active", "Neutral", "Somewhat Isolated", "Very Isolated"]
-      },
-      {
-        id: "outing_frequency",
-        question: "How often do you go out socially in a month?",
-        type: "select",
-        options: ["Rarely (0–1 times)", "Occasionally (2–4 times)", "Regularly (5–8 times)", "Frequently (9+ times)"]
-      },
-    ],
-    lifestyle: [
-      {
-        id: "music_mood",
-        question: "Do you use music to help with your mood?",
-        type: "select",
-        options: ["Yes, regularly", "Occasionally", "Rarely", "No"]
-      },
-      {
-        id: "music_genres",
-        question: "What music genres do you enjoy the most?",
-        type: "multiselect",
-        options: ["Pop", "Rock", "Classical", "Jazz", "Hip-Hop", "EDM", "Lo-fi/Chill", "Other"]
-      },
-      {
-        id: "workout_routine",
-        question: "Do you have a regular workout routine?",
-        type: "select",
-        options: ["Yes, daily", "Yes, a few times a week", "Occasionally", "Rarely", "Never"]
-      },
-      {
-        id: "sleep_quality",
-        question: "How would you describe your typical sleep quality?",
-        type: "select",
-        options: ["Very Good", "Good", "Average", "Poor", "Very Poor"]
-      },
-      {
-        id: "screen_time",
-        question: "On average, how many hours do you spend on screens per day?",
-        type: "select",
-        options: ["Less than 2 hours", "2–4 hours", "4–6 hours", "6–8 hours", "More than 8 hours"]
-      }
-    ],
-    wellbeing: [
-      {
-        id: "stress_levels",
-        question: "On a scale of 1–10, how stressed do you feel currently?",
-        type: "slider",
-        min: 1,
-        max: 10,
-        labels: ["Not stressed at all", "Extremely stressed"]
-      },
-      {
-        id: "self_care",
-        question: "How often do you engage in self-care activities?",
-        type: "select",
-        options: ["Daily", "A few times a week", "Once a week", "Rarely", "Never"]
-      },
-      {
-        id: "life_changes",
-        question: "Have you recently experienced any major life changes?",
-        type: "select",
-        options: ["Yes", "No"]
-      },
-      {
-        id: "energy_levels",
-        question: "How would you describe your daily energy levels?",
-        type: "select",
-        options: ["Very High", "High", "Moderate", "Low", "Very Low"]
-      },
-      {
-        id: "mental_health",
-        question: "How would you rate your overall mental health currently?",
-        type: "select",
-        options: ["Excellent", "Good", "Fair", "Poor", "Very Poor"]
-      },
-      {
-        id: "motivation",
-        question: "How motivated do you feel to complete daily tasks?",
-        type: "select",
-        options: ["Very Motivated", "Somewhat Motivated", "Neutral", "Slightly Demotivated", "Very Demotivated"]
-      },
-      {
-        id: "coping_mechanisms",
-        question: "What do you usually do to cope with stress or negative emotions?",
-        type: "multiselect",
-        options: ["Talk to friends/family", "Listen to music", "Exercise", "Meditate", "Watch TV/movies", "Sleep", "Other"]
-      }
-    ],
-    conclusion: [
-      {
-        id: "additional_info",
-        question: "Is there anything else you would like to share about your emotional wellbeing?",
-        type: "textarea",
-        placeholder: "Your thoughts help us understand you better..."
-      }
-    ]
   };
 
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
@@ -418,24 +280,26 @@ export default function OnboardingQuestions() {
   // Render the completion screen
   const renderCompletionScreen = () => {
     return (
-      <div className={`flex flex-col items-center justify-center transition-opacity duration-500 ${
-        animationState === "entering" ? "opacity-100" : "opacity-0"
-      }`}>
+      <div className="flex flex-col items-center justify-center">
         <div className="text-6xl mb-6">🎉</div>
         <h2 className="text-4xl font-bold text-violet-800 mb-4">Thank you!</h2>
-        <p className="text-xl text-gray-700 mb-8 text-center">Your responses have been recorded.</p>
+        <p className="text-xl text-gray-700 mb-8 text-center">
+          Your responses have been recorded.
+        </p>
         <p className="text-gray-600 text-center max-w-md">
           We appreciate your time and honesty. Your insights will help us better understand your mental wellness journey.
         </p>
-        <button 
-          className="mt-10 px-8 py-4 bg-violet-600 text-white rounded-full hover:bg-violet-700 transition-all"
-          onClick={() => window.location.reload()}
-        >
-          Start Over
-        </button>
+        <Link to="/dashboard" className="mt-8">
+          <button 
+            className="mt-10 px-8 py-4 bg-violet-600 text-white rounded-full hover:bg-violet-700 transition-all"
+          >
+            Let's Go
+          </button>
+        </Link>
       </div>
     );
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-gradient-to-br from-white to-violet-100">

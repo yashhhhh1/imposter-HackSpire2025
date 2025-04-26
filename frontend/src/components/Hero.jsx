@@ -1,6 +1,6 @@
 import React from "react";
 import { Heart } from "lucide-react";
-
+import { Link } from "react-router-dom";
 const Hero = () => {
   return (
     <>
@@ -26,9 +26,11 @@ const Hero = () => {
           </p>
 
           {/* CTA Button */}
-          <button className="bg-[#a391f5] hover:bg-[#9279f3] text-white font-medium py-3 px-8 rounded-full text-lg transition-colors duration-300 shadow-md hover:shadow-lg">
+        <Link to="/login">
+        <button className="bg-[#a391f5] hover:bg-[#9279f3] text-white font-medium py-3 px-8 rounded-full text-lg transition-colors duration-300 shadow-md hover:shadow-lg">
             Start Your Journey
           </button>
+        </Link>
         </div>
       </div>
     </>

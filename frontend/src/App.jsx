@@ -12,6 +12,7 @@ import Navbar from "./components/Navbar";
 import PrivateRoute from "./PrivateRouter/PrivateRouter";
 import AuthProvider from "./Context/AuthProvider";
 import OnboardingQuestions from "./components/OnboardingQuestions";
+import Dashboard from "./pages/Dashboard";
 
 // Create a protected onboarding route component
 const OnboardingRoute = ({ children }) => {
@@ -43,6 +44,8 @@ const OnboardingCheck = () => {
 function App() {
   return (
     <AuthProvider>
+      {/* <Navbar /> */}
+      {/* <div className="container mx-auto"> */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -55,6 +58,7 @@ function App() {
             </OnboardingRoute>
           } 
         />
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard/></PrivateRoute>} />
         <Route path="/onboarding-check" element={<OnboardingCheck />} />
         <Route 
           path="/ai" 
