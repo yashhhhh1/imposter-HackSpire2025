@@ -1,12 +1,16 @@
-import React from 'react';
+import { Features } from "../components/Feature";
+import { FeelingCheck } from "../components/FeelingCheck";
+import Footer from "../components/Footer";
+import Hero from "../components/Hero";
 
 const Home = () => {
   return (
-    <div className="home-page">
-      <h1>Home Page</h1>
-      <p>Welcome to the Home page of the application.</p>
-    </div>
+    <>
+      <Hero />
+      <Features />
+      <FeelingCheck />
+      <Footer/>
+    </>
   );
 };
-
 export default Home;
