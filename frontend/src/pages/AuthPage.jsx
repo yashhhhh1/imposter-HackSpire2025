@@ -29,10 +29,11 @@ const AuthPage = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate(from, { replace: true });
+      // navigate(from, { replace: true });
+      navigate("/onboarding-check", { replace: true });
     }
   }, [user, navigate, from]);
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -40,6 +41,7 @@ const AuthPage = () => {
     
     try {
       if (isLogin) {
+        console.log("Attempting login with:", email);
         await login(email, password);
       } else {
         // Registration flow
@@ -51,11 +53,11 @@ const AuthPage = () => {
         return; // Don't navigate yet, wait for email verification
       }
     } catch (error) {
-      console.error("Auth Error:", error.message);
+      console.error("Auth Error:", error.code, error.message);
       
       // Better error messages for the user
-      if (error.code === 'auth/wrong-password') {
-        setError("Incorrect password. Please try again.");
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        setError("Incorrect email or password. Please try again.");
       } else if (error.code === 'auth/user-not-found') {
         setError("No account found with this email.");
       } else if (error.code === 'auth/email-already-in-use') {

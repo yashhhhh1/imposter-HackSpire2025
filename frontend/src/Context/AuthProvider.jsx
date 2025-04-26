@@ -14,7 +14,8 @@ import {
 } from "firebase/auth";
 import { app } from '../firebase/firebase.config';
 import axios from 'axios';
-
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from '../firebase/firebase.config'; // Adjust the import path as needed
 // Create the AuthContext
 export const AuthContext = createContext();
 
@@ -25,18 +26,49 @@ const githubProvider = new GithubAuthProvider();
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Add this with your other state declarations
+const [userOnboardingComplete, setUserOnboardingComplete] = useState(false);
   
   // Email/Password signup
   const createUser = (email, password) => {
     setLoading(true);
     return createUserWithEmailAndPassword(auth, email, password);
   };
+// Add these functions in your AuthProvider component
+const checkOnboardingStatus = async (userId) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists() && userSnap.data().onboardingComplete) {
+      setUserOnboardingComplete(true);
+    } else {
+      setUserOnboardingComplete(false);
+    }
+  } catch (error) {
+    console.error("Error checking onboarding status:", error);
+    setUserOnboardingComplete(false);
+  }
+};
 
+const completeOnboarding = async (userData) => {
+  try {
+    const userRef = doc(db, "users", user.uid);
+    await setDoc(userRef, {
+      ...userData,
+      onboardingComplete: true
+    }, { merge: true });
+    setUserOnboardingComplete(true);
+  } catch (error) {
+    console.error("Error completing onboarding:", error);
+    throw error;
+  }
+};
   // Email/Password signin
-  const login = (email, password) => {
-    setLoading(true);
-    return signInWithEmailAndPassword(auth, email, password);
-  };
+  // In AuthProvider.js
+const login = (email, password) => {
+  return signInWithEmailAndPassword(auth, email, password);
+};
 
   // Sign in with Google
   const signInWithGoogle = () => {
@@ -71,7 +103,18 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('access-token');
     return signOut(auth);
   };
-
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+      
+      if (currentUser) {
+        checkOnboardingStatus(currentUser.uid);
+      }
+    });
+    
+    return () => unsubscribe();
+  }, []);
   // Manage auth state and token
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -81,7 +124,7 @@ const AuthProvider = ({ children }) => {
         // Get JWT token when user is authenticated
         const userInfo = { email: currentUser.email };
         
-        axios.post('http://localhost:3000/jwt', userInfo)
+        axios.post('http://localhost:8080/jwt', userInfo)
           .then((response) => {
             if (response.data.token) {
               localStorage.setItem('access-token', response.data.token);
@@ -113,6 +156,8 @@ const AuthProvider = ({ children }) => {
     updateUserProfile,
     resetPassword,
     verifyEmail,
+    userOnboardingComplete,
+    setUserOnboardingComplete,
     logout
   };
 
