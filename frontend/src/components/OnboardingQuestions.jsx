@@ -1,18 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { doc, setDoc } from "firebase/firestore";
+import { AuthContext } from "../Context/AuthProvider";
+import { db } from "../firebase/firebase.config"; // Adjust path to your firebase config
 import { Brain, Briefcase, Users, DumbbellIcon, Coffee, Leaf, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+
 export default function OnboardingQuestions() {
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [error, setError] = useState(null);
+
   // Categories for the questions
   const categories = [
     { id: "intro", name: "Welcome", icon: <Brain className="w-6 h-6" /> },
-    // { id: "profession", name: "Professional Life", icon: <Briefcase className="w-6 h-6" /> },
-    // { id: "social", name: "Social Connections", icon: <Users className="w-6 h-6" /> },
-    // { id: "lifestyle", name: "Lifestyle Habits", icon: <DumbbellIcon className="w-6 h-6" /> },
-    // { id: "wellbeing", name: "Mental Wellbeing", icon: <Leaf className="w-6 h-6" /> },
-    // { id: "conclusion", name: "Final Thoughts", icon: <Coffee className="w-6 h-6" /> },
+    { id: "profession", name: "Professional Life", icon: <Briefcase className="w-6 h-6" /> },
+    { id: "social", name: "Social Connections", icon: <Users className="w-6 h-6" /> },
+    { id: "lifestyle", name: "Lifestyle Habits", icon: <DumbbellIcon className="w-6 h-6" /> },
+    { id: "wellbeing", name: "Mental Wellbeing", icon: <Leaf className="w-6 h-6" /> },
+    { id: "conclusion", name: "Final Thoughts", icon: <Coffee className="w-6 h-6" /> },
   ];
 
-  // Questions organized by category
+  // Questions organized by category (expanded to match schema)
   const questions = {
     intro: [
       {
@@ -26,23 +35,157 @@ export default function OnboardingQuestions() {
         question: "Which age group do you belong to?",
         type: "select",
         options: ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"],
-      }
+      },
+    ],
+    profession: [
+      {
+        id: "profession",
+        question: "What is your profession?",
+        type: "text",
+        placeholder: "e.g., Software Engineer",
+      },
+      {
+        id: "job_position",
+        question: "What is your job position?",
+        type: "text",
+        placeholder: "e.g., Senior Developer",
+      },
+      {
+        id: "work_environment",
+        question: "How would you describe your work environment?",
+        type: "select",
+        options: ["Positive", "Neutral", "Stressful"],
+      },
+      {
+        id: "working_hours",
+        question: "How many hours do you work per week?",
+        type: "text",
+        placeholder: "e.g., 40",
+      },
+    ],
+    social: [
+      {
+        id: "social_life",
+        question: "How satisfied are you with your social life?",
+        type: "select",
+        options: ["Very satisfied", "Satisfied", "Neutral", "Dissatisfied"],
+      },
+      {
+        id: "family_support",
+        question: "Do you feel supported by your family?",
+        type: "select",
+        options: ["Yes", "Somewhat", "No"],
+      },
+      {
+        id: "outing_frequency",
+        question: "How often do you go out with friends?",
+        type: "select",
+        options: ["Daily", "Weekly", "Monthly", "Rarely"],
+      },
+    ],
+    lifestyle: [
+      {
+        id: "workout_routine",
+        question: "Do you have a regular workout routine?",
+        type: "select",
+        options: ["Yes, daily", "Yes, weekly", "Occasionally", "No"],
+      },
+      {
+        id: "screen_time",
+        question: "How many hours do you spend on screens daily?",
+        type: "text",
+        placeholder: "e.g., 4",
+      },
+      {
+        id: "self_care",
+        question: "Do you practice self-care activities?",
+        type: "select",
+        options: ["Daily", "Weekly", "Occasionally", "Never"],
+      },
+    ],
+    wellbeing: [
+      {
+        id: "mental_health",
+        question: "How would you rate your mental health?",
+        type: "select",
+        options: ["Excellent", "Good", "Fair", "Poor"],
+      },
+      {
+        id: "sleep_quality",
+        question: "How would you rate your sleep quality?",
+        type: "select",
+        options: ["Excellent", "Good", "Fair", "Poor"],
+      },
+      {
+        id: "stress_levels",
+        question: "On a scale of 1-5, how stressed do you feel?",
+        type: "slider",
+        min: 1,
+        max: 5,
+        labels: ["Low", "High"],
+      },
+      {
+        id: "motivation",
+        question: "How motivated do you feel in daily life?",
+        type: "select",
+        options: ["Highly motivated", "Moderately motivated", "Low motivation"],
+      },
+      {
+        id: "energy_levels",
+        question: "How would you describe your energy levels?",
+        type: "select",
+        options: ["High", "Moderate", "Low"],
+      },
+    ],
+    conclusion: [
+      {
+        id: "coping_mechanisms",
+        question: "Which coping mechanisms do you use?",
+        type: "multiselect",
+        options: ["Exercise", "Meditation", "Reading", "Music", "Therapy", "Other"],
+      },
+      {
+        id: "additional_info",
+        question: "Anything else you'd like to share?",
+        type: "textarea",
+        placeholder: "Feel free to share any additional thoughts...",
+      },
     ],
   };
 
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [animationState, setAnimationState] = useState("idle"); // "idle", "exiting", "entering"
+  const [animationState, setAnimationState] = useState("idle");
   const [isCompleted, setIsCompleted] = useState(false);
-  
+
   const currentCategory = categories[currentCategoryIndex];
   const categoryQuestions = questions[currentCategory.id];
   const currentQuestion = categoryQuestions[currentQuestionIndex];
   const totalQuestions = Object.values(questions).flat().length;
   const completedQuestions = Object.keys(answers).length;
-  
-  // Calculate how far through the questionnaire the user is
+
+  // Save answers to Firestore when survey is completed
+  useEffect(() => {
+    if (isCompleted && user) {
+      const saveAnswers = async () => {
+        try {
+          console.log('Saving onboarding answers for userId:', user.uid);
+          console.log('Answers:', answers);
+          await setDoc(doc(db, 'onboardingAnswers', user.uid), {
+            ...answers,
+            timestamp: new Date(),
+          });
+          console.log('Onboarding answers saved successfully');
+        } catch (err) {
+          console.error('Error saving onboarding answers:', err);
+          setError('Failed to save onboarding answers: ' + err.message);
+        }
+      };
+      saveAnswers();
+    }
+  }, [isCompleted, user]);
+
   const getProgress = () => {
     let count = 0;
     for (let i = 0; i < currentCategoryIndex; i++) {
@@ -52,15 +195,13 @@ export default function OnboardingQuestions() {
     return (count / totalQuestions) * 100;
   };
 
-  // Handle answer changes
   const handleAnswerChange = (value) => {
-    setAnswers(prev => ({
+    setAnswers((prev) => ({
       ...prev,
-      [currentQuestion.id]: value
+      [currentQuestion.id]: value,
     }));
   };
 
-  // Navigate to next question with animation
   const navigateNext = () => {
     if (currentQuestionIndex < categoryQuestions.length - 1) {
       animateTransition(() => {
@@ -72,14 +213,12 @@ export default function OnboardingQuestions() {
         setCurrentQuestionIndex(0);
       });
     } else {
-      // Survey completed
       animateTransition(() => {
         setIsCompleted(true);
       });
     }
   };
 
-  // Navigate to previous question with animation
   const navigatePrev = () => {
     if (currentQuestionIndex > 0) {
       animateTransition(() => {
@@ -94,49 +233,40 @@ export default function OnboardingQuestions() {
     }
   };
 
-  // Animation sequence for transitioning between questions
   const animateTransition = (callback) => {
     setAnimationState("exiting");
-    
     setTimeout(() => {
       callback();
       setAnimationState("entering");
-      
       setTimeout(() => {
         setAnimationState("idle");
       }, 500);
     }, 500);
   };
 
-  // Check if we can proceed to the next question
   const canProceed = () => {
     if (currentQuestion.type === "textarea" || currentQuestion.type === "text") {
-      return true; // Allow proceeding without answers for text inputs
+      return true;
     }
-    
     if (currentQuestion.type === "multiselect") {
       return answers[currentQuestion.id] && answers[currentQuestion.id].length > 0;
     }
-    
     return answers[currentQuestion.id] !== undefined;
   };
 
-  // Automatic progression after selecting an option for select type questions
   useEffect(() => {
     if (
-      animationState === "idle" && 
-      answers[currentQuestion?.id] !== undefined && 
+      animationState === "idle" &&
+      answers[currentQuestion?.id] !== undefined &&
       (currentQuestion?.type === "select" || currentQuestion?.type === "slider")
     ) {
       const timer = setTimeout(() => {
         navigateNext();
       }, 700);
-      
       return () => clearTimeout(timer);
     }
   }, [answers, currentQuestion?.id, animationState]);
 
-  // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Enter" && canProceed() && animationState === "idle") {
@@ -145,12 +275,10 @@ export default function OnboardingQuestions() {
         navigatePrev();
       }
     };
-    
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [canProceed, animationState]);
 
-  // Render question input based on type
   const renderQuestionInput = () => {
     switch (currentQuestion.type) {
       case "text":
@@ -164,7 +292,7 @@ export default function OnboardingQuestions() {
               className="w-full p-4 bg-transparent border-b-2 border-violet-300 text-gray-800 text-xl focus:outline-none focus:border-violet-600 transition-all"
               autoFocus
             />
-            <button 
+            <button
               onClick={navigateNext}
               className="mt-6 px-6 py-3 bg-violet-600 text-white rounded-full hover:bg-violet-700 transition-all"
             >
@@ -172,7 +300,6 @@ export default function OnboardingQuestions() {
             </button>
           </div>
         );
-        
       case "textarea":
         return (
           <div className="mt-6 w-full max-w-lg">
@@ -183,7 +310,7 @@ export default function OnboardingQuestions() {
               className="w-full p-4 min-h-32 bg-white bg-opacity-50 border-2 border-violet-300 rounded-lg text-gray-800 text-lg focus:outline-none focus:border-violet-600 transition-all"
               autoFocus
             />
-            <button 
+            <button
               onClick={navigateNext}
               className="mt-6 px-6 py-3 bg-violet-600 text-white rounded-full hover:bg-violet-700 transition-all"
             >
@@ -191,7 +318,6 @@ export default function OnboardingQuestions() {
             </button>
           </div>
         );
-        
       case "select":
         return (
           <div className="mt-8 w-full max-w-lg">
@@ -212,7 +338,6 @@ export default function OnboardingQuestions() {
             </div>
           </div>
         );
-        
       case "multiselect":
         const selectedOptions = answers[currentQuestion.id] || [];
         return (
@@ -223,7 +348,7 @@ export default function OnboardingQuestions() {
                   key={option}
                   onClick={() => {
                     const newSelectedOptions = selectedOptions.includes(option)
-                      ? selectedOptions.filter(item => item !== option)
+                      ? selectedOptions.filter((item) => item !== option)
                       : [...selectedOptions, option];
                     handleAnswerChange(newSelectedOptions);
                   }}
@@ -237,7 +362,7 @@ export default function OnboardingQuestions() {
                 </button>
               ))}
             </div>
-            <button 
+            <button
               onClick={navigateNext}
               disabled={!canProceed()}
               className={`mt-6 px-6 py-3 rounded-full transition-all ${
@@ -250,7 +375,6 @@ export default function OnboardingQuestions() {
             </button>
           </div>
         );
-        
       case "slider":
         return (
           <div className="mt-8 w-full max-w-lg">
@@ -265,22 +389,23 @@ export default function OnboardingQuestions() {
               />
               <div className="flex justify-between mt-2 text-sm text-gray-600">
                 <span>{currentQuestion.labels && currentQuestion.labels[0]}</span>
-                <span className="font-bold text-violet-600 text-xl">{answers[currentQuestion.id] || (currentQuestion.min || 1)}</span>
+                <span className="font-bold text-violet-600 text-xl">
+                  {answers[currentQuestion.id] || (currentQuestion.min || 1)}
+                </span>
                 <span>{currentQuestion.labels && currentQuestion.labels[1]}</span>
               </div>
             </div>
           </div>
         );
-      
       default:
         return null;
     }
   };
 
-  // Render the completion screen
   const renderCompletionScreen = () => {
     return (
       <div className="flex flex-col items-center justify-center">
+        {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="text-6xl mb-6">🎉</div>
         <h2 className="text-4xl font-bold text-violet-800 mb-4">Thank you!</h2>
         <p className="text-xl text-gray-700 mb-8 text-center">
@@ -290,7 +415,7 @@ export default function OnboardingQuestions() {
           We appreciate your time and honesty. Your insights will help us better understand your mental wellness journey.
         </p>
         <Link to="/dashboard" className="mt-8">
-          <button 
+          <button
             className="mt-10 px-8 py-4 bg-violet-600 text-white rounded-full hover:bg-violet-700 transition-all"
           >
             Let's Go
@@ -299,7 +424,6 @@ export default function OnboardingQuestions() {
       </div>
     );
   };
-  
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-gradient-to-br from-white to-violet-100">
@@ -308,14 +432,13 @@ export default function OnboardingQuestions() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-violet-200 rounded-full opacity-20 -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-300 rounded-full opacity-20 translate-y-1/2 -translate-x-1/2"></div>
       </div>
-      
+
       {/* Header */}
       <header className="p-6 flex items-center justify-between z-10">
         <div className="flex items-center">
           <Brain className="w-8 h-8 text-violet-600 mr-2" />
           <h1 className="text-2xl font-bold text-violet-800">MindMosaic</h1>
         </div>
-        
         <div className="flex items-center space-x-2">
           <div className="text-sm text-gray-600">{currentCategory.name}</div>
           <div className="h-8 w-8 rounded-full bg-violet-100 flex items-center justify-center">
@@ -323,32 +446,38 @@ export default function OnboardingQuestions() {
           </div>
         </div>
       </header>
-      
+
       {/* Progress bar */}
       <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-20">
-        <div 
+        <div
           className="h-full bg-violet-600 transition-all duration-500 ease-out"
           style={{ width: `${getProgress()}%` }}
         ></div>
       </div>
-      
+
       {/* Main content */}
       <main className="flex-1 flex flex-col items-center justify-center z-10 px-4">
         {!isCompleted ? (
           <div className="w-full max-w-2xl mx-auto">
             {/* Question */}
-            <div className={`transition-all duration-500 transform ${
-              animationState === "idle" ? "translate-y-0 opacity-100" :
-              animationState === "exiting" ? "-translate-y-16 opacity-0" :
-              animationState === "entering" ? "translate-y-0 opacity-100 scale-100" : ""
-            }`}>
+            <div
+              className={`transition-all duration-500 transform ${
+                animationState === "idle"
+                  ? "translate-y-0 opacity-100"
+                  : animationState === "exiting"
+                  ? "-translate-y-16 opacity-0"
+                  : animationState === "entering"
+                  ? "translate-y-0 opacity-100 scale-100"
+                  : ""
+              }`}
+            >
               <h2 className="text-4xl font-bold text-gray-800 mb-4">
                 {currentQuestion.question}
               </h2>
-              
+
               {/* Question input */}
               {renderQuestionInput()}
-              
+
               {/* Navigation */}
               <div className="mt-10 flex items-center justify-between">
                 <button
@@ -362,7 +491,6 @@ export default function OnboardingQuestions() {
                 >
                   ← Back
                 </button>
-                
                 <div className="text-sm text-gray-500">
                   {completedQuestions + 1}/{totalQuestions}
                 </div>
@@ -373,7 +501,7 @@ export default function OnboardingQuestions() {
           renderCompletionScreen()
         )}
       </main>
-      
+
       {/* Footer */}
       <footer className="p-6 text-center z-10">
         <div className="text-xs text-gray-500 flex items-center justify-center">
