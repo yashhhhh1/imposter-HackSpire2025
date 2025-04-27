@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../Context/AuthProvider";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase/firebase.config";
 
-const Chat = ({ darkMode }) => {
+const Chat = ({ darkMode, onCheckInComplete, userId }) => {
   const { user } = useContext(AuthContext);
   const apiKey = import.meta.env.VITE_API_KEY;
   const chatContainerRef = useRef(null);
@@ -31,58 +33,41 @@ const Chat = ({ darkMode }) => {
   ];
 
   const emotionToGenreMap = {
-    happy: { movie: "Comedy", music: "pop", book: "humor" },
-    excited: { movie: "Adventure", music: "upbeat", book: "fantasy" },
-    peaceful: { movie: "Documentary", music: "ambient", book: "poetry" },
-    grateful: { movie: "Biography", music: "classical", book: "memoir" },
-    optimistic: { movie: "Family", music: "folk", book: "self-help" },
-    content: { movie: "Comedy", music: "acoustic", book: "travel" },
-    hopeful: { movie: "Fantasy", music: "indie", book: "spiritual" },
-    inspired: { movie: "Biography", music: "instrumental", book: "philosophy" },
-    loved: { movie: "Romance", music: "love songs", book: "romance" },
-    sad: { movie: "Comedy", music: "ballad", book: "literary fiction" },
-    anxious: { movie: "Comedy", music: "lo-fi", book: "mindfulness" },
-    stressed: { movie: "Animation", music: "meditation", book: "self-care" },
-    angry: { movie: "Action", music: "rock", book: "thriller" },
-    depressed: { movie: "Drama", music: "hopeful", book: "uplifting" },
-    overwhelmed: {
-      movie: "Animation",
-      music: "calming",
-      book: "short stories",
-    },
-    lonely: {
-      movie: "Drama",
-      music: "singer-songwriter",
-      book: "coming-of-age",
-    },
-    frustrated: { movie: "Sci-Fi", music: "alternative", book: "adventure" },
-    tired: { movie: "Family", music: "gentle", book: "audiobook" },
-    reflective: { movie: "Drama", music: "jazz", book: "essays" },
-    nostalgic: {
-      movie: "History",
-      music: "oldies",
-      book: "historical fiction",
-    },
-    confused: { movie: "Mystery", music: "experimental", book: "fantasy" },
-    curious: { movie: "Documentary", music: "world", book: "non-fiction" },
-    bored: { movie: "Thriller", music: "new genres", book: "mystery" },
-    neutral: { movie: "Action", music: "playlists", book: "bestsellers" },
+    happy: { movie: "Comedy", music: "pop", book: "humor", emoji: "😊🎶" },
+    excited: { movie: "Adventure", music: "upbeat", book: "fantasy", emoji: "🎉" },
+    peaceful: { movie: "Documentary", music: "ambient", book: "poetry", emoji: "🌿" },
+    grateful: { movie: "Biography", music: "classical", book: "memoir", emoji: "🙏" },
+    optimistic: { movie: "Family", music: "folk", book: "self-help", emoji: "🌞" },
+    content: { movie: "Comedy", music: "acoustic", book: "travel", emoji: "😊" },
+    hopeful: { movie: "Fantasy", music: "indie", book: "inspirational", emoji: "🌈" },
+    inspired: { movie: "Biography", music: "instrumental", book: "philosophy", emoji: "✨" },
+    loved: { movie: "Romance", music: "love_songs", book: "romance", emoji: "💖" },
+    sad: { movie: "Comedy", music: "ballad", book: "literary fiction", emoji: "😢" },
+    anxious: { movie: "Comedy", music: "lo_fi", book: "self-help", emoji: "😟" },
+    stressed: { movie: "Animation", music: "meditation", book: "self-help", emoji: "😓" },
+    angry: { movie: "Action", music: "rock", book: "thriller", emoji: "😣" },
+    depressed: { movie: "Drama", music: "hopeful", book: "inspirational", emoji: "😔" },
+    overwhelmed: { movie: "Animation", music: "calming", book: "short stories", emoji: "😣" },
+    lonely: { movie: "Drama", music: "singer_songwriter", book: "young adult", emoji: "😞" },
+    frustrated: { movie: "Sci-Fi", music: "alternative", book: "adventure", emoji: "😣" },
+    tired: { movie: "Family", music: "gentle", book: "fiction", emoji: "😴" },
+    reflective: { movie: "Drama", music: "jazz", book: "essays", emoji: "🤔" },
+    nostalgic: { movie: "History", music: "oldies", book: "historical fiction", emoji: "📼" },
+    confused: { movie: "Mystery", music: "experimental", book: "fantasy", emoji: "😕" },
+    curious: { movie: "Documentary", music: "world", book: "non-fiction", emoji: "🧐" },
+    bored: { movie: "Thriller", music: "new_genres", book: "mystery", emoji: "😑" },
+    neutral: { movie: "Action", music: "playlists", book: "bestsellers", emoji: "😶" },
   };
 
   const getRandomQuestion = () => {
-    const randomIndex = Math.floor(
-      Math.random() * emotionalCheckInQuestions.length
-    );
+    const randomIndex = Math.floor(Math.random() * emotionalCheckInQuestions.length);
     return emotionalCheckInQuestions[randomIndex];
   };
 
   const [messages, setMessages] = useState([
     {
       sender: "MindMosaic AI",
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       text: getRandomQuestion(),
       showButtons: false,
     },
@@ -91,171 +76,159 @@ const Chat = ({ darkMode }) => {
   const [loading, setLoading] = useState(false);
   const [emotionDetected, setEmotionDetected] = useState(false);
   const [currentEmotion, setCurrentEmotion] = useState("neutral");
-  const [showMovieRecommendations, setShowMovieRecommendations] =
-    useState(false);
+  const [fixedGenre, setFixedGenre] = useState(null);
+  const [showMovieRecommendations, setShowMovieRecommendations] = useState(false);
   const [movieRecommendations, setMovieRecommendations] = useState([]);
   const [loadingMovies, setLoadingMovies] = useState(false);
-  const [showMusicRecommendations, setShowMusicRecommendations] =
-    useState(false);
+  const [showMusicRecommendations, setShowMusicRecommendations] = useState(false);
   const [musicRecommendations, setMusicRecommendations] = useState([]);
   const [loadingMusic, setLoadingMusic] = useState(false);
   const [showBookRecommendations, setShowBookRecommendations] = useState(false);
   const [bookRecommendations, setBookRecommendations] = useState([]);
   const [loadingBooks, setLoadingBooks] = useState(false);
+  const [error, setError] = useState(null);
+  const [messageCount, setMessageCount] = useState(0);
+  const [responses, setResponses] = useState({
+    feeling: "",
+    energy: "",
+    stress: "",
+    sleep: "",
+    social: "",
+    work: "",
+  });
 
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [
-    messages,
-    showMovieRecommendations,
-    showMusicRecommendations,
-    showBookRecommendations,
-  ]);
+  }, [messages, showMovieRecommendations, showMusicRecommendations, showBookRecommendations]);
 
   const detectEmotion = (text) => {
     text = text.toLowerCase();
+    let detectedEmotions = [];
     for (const emotion in emotionToGenreMap) {
-      const pattern = new RegExp(
-        `\\b${emotion}\\b|\\b${emotion}ing\\b|\\b${emotion}ed\\b`
-      );
+      const pattern = new RegExp(`\\b${emotion}\\b|\\b${emotion}ing\\b|\\b${emotion}ed\\b`);
       if (pattern.test(text)) {
-        return emotion;
+        detectedEmotions.push({ emotion, confidence: 0.9 });
       }
     }
     const keywordToEmotion = {
-      joy: "happy",
-      joyful: "happy",
-      pleased: "happy",
-      delighted: "happy",
-      cheerful: "happy",
-      ecstatic: "happy",
-      contented: "content",
-      gleeful: "happy",
-      overjoyed: "happy",
-      proud: "happy",
-      inspired: "inspired",
-      motivated: "inspired",
-      confident: "happy",
-      grateful: "grateful",
-      thankful: "grateful",
-      appreciated: "grateful",
-      hope: "hopeful",
-      hopeful: "hopeful",
-      optimism: "optimistic",
-      upset: "sad",
-      down: "sad",
-      gloomy: "sad",
-      blue: "sad",
-      depressed: "depressed",
-      miserable: "sad",
-      devastated: "sad",
-      heartbroken: "sad",
-      melancholy: "sad",
-      sorrow: "sad",
-      grief: "sad",
-      grieve: "sad",
-      grieving: "sad",
-      loss: "sad",
-      bereaved: "sad",
-      mourning: "sad",
-      hopeless: "depressed",
-      despair: "depressed",
-      shame: "sad",
-      ashamed: "sad",
-      guilt: "sad",
-      regret: "sad",
-      bitter: "angry",
-      resentful: "angry",
-      furious: "angry",
-      irritated: "angry",
-      annoyed: "angry",
-      mad: "angry",
-      enraged: "angry",
-      irritable: "angry",
-      worried: "anxious",
-      nervous: "anxious",
-      tense: "anxious",
-      restless: "anxious",
-      panicked: "anxious",
-      fear: "anxious",
-      dread: "anxious",
-      anxiety: "anxious",
-      panic: "anxious",
-      insecure: "anxious",
-      uncertain: "anxious",
-      uncertainty: "anxious",
-      exhausted: "tired",
-      sleepy: "tired",
-      drained: "tired",
-      weary: "tired",
-      fatigued: "tired",
-      burnout: "tired",
-      alone: "lonely",
-      isolated: "lonely",
-      abandoned: "lonely",
-      loneliness: "lonely",
-      desolate: "lonely",
-      unloved: "lonely",
-      calm: "peaceful",
-      relaxed: "peaceful",
-      serene: "peaceful",
-      tranquil: "peaceful",
-      relief: "peaceful",
-      comfort: "peaceful",
-      enthusiastic: "excited",
-      eager: "excited",
-      thrilled: "excited",
-      energized: "excited",
-      breakup: "sad",
-      "broke up": "sad",
-      "break up": "sad",
-      heartbreak: "sad",
-      split: "sad",
-      divorce: "sad",
-      separated: "sad",
-      rejection: "sad",
-      rejected: "sad",
-      abandon: "lonely",
-      abandonment: "lonely",
-      betray: "sad",
-      betrayal: "sad",
-      cheated: "sad",
-      infidelity: "sad",
-      affair: "sad",
-      stress: "stressed",
-      stressed: "stressed",
-      pressure: "stressed",
-      overwhelm: "overwhelmed",
-      overwhelmed: "overwhelmed",
-      struggle: "stressed",
-      struggling: "stressed",
-      battle: "stressed",
-      challenge: "stressed",
-      trauma: "sad",
-      ptsd: "anxious",
-      crisis: "anxious",
-      addiction: "stressed",
-      "self-esteem": "anxious",
-      insecurity: "anxious",
-      phobia: "anxious",
-      obsess: "anxious",
-      obsessed: "anxious",
+      joy: { emotion: "happy", confidence: 0.85 },
+      joyful: { emotion: "happy", confidence: 0.85 },
+      pleased: { emotion: "happy", confidence: 0.8 },
+      delighted: { emotion: "happy", confidence: 0.85 },
+      cheerful: { emotion: "happy", confidence: 0.8 },
+      ecstatic: { emotion: "happy", confidence: 0.9 },
+      contented: { emotion: "content", confidence: 0.8 },
+      gleeful: { emotion: "happy", confidence: 0.85 },
+      overjoyed: { emotion: "happy", confidence: 0.9 },
+      proud: { emotion: "happy", confidence: 0.8 },
+      inspired: { emotion: "inspired", confidence: 0.85 },
+      motivated: { emotion: "inspired", confidence: 0.8 },
+      confident: { emotion: "happy", confidence: 0.75 },
+      grateful: { emotion: "grateful", confidence: 0.85 },
+      thankful: { emotion: "grateful", confidence: 0.85 },
+      appreciated: { emotion: "grateful", confidence: 0.8 },
+      hope: { emotion: "hopeful", confidence: 0.85 },
+      hopeful: { emotion: "hopeful", confidence: 0.85 },
+      optimism: { emotion: "optimistic", confidence: 0.85 },
+      upset: { emotion: "sad", confidence: 0.8 },
+      down: { emotion: "sad", confidence: 0.75 },
+      gloomy: { emotion: "sad", confidence: 0.8 },
+      blue: { emotion: "sad", confidence: 0.75 },
+      depressed: { emotion: "depressed", confidence: 0.9 },
+      miserable: { emotion: "sad", confidence: 0.85 },
+      devastated: { emotion: "sad", confidence: 0.9 },
+      heartbroken: { emotion: "sad", confidence: 0.9 },
+      melancholy: { emotion: "sad", confidence: 0.85 },
+      sorrow: { emotion: "sad", confidence: 0.85 },
+      grief: { emotion: "sad", confidence: 0.9 },
+      hopeless: { emotion: "depressed", confidence: 0.85 },
+      despair: { emotion: "depressed", confidence: 0.85 },
+      shame: { emotion: "sad", confidence: 0.8 },
+      ashamed: { emotion: "sad", confidence: 0.8 },
+      guilt: { emotion: "sad", confidence: 0.8 },
+      regret: { emotion: "sad", confidence: 0.8 },
+      bitter: { emotion: "angry", confidence: 0.8 },
+      resentful: { emotion: "angry", confidence: 0.8 },
+      furious: { emotion: "angry", confidence: 0.9 },
+      irritated: { emotion: "angry", confidence: 0.75 },
+      annoyed: { emotion: "angry", confidence: 0.75 },
+      mad: { emotion: "angry", confidence: 0.8 },
+      enraged: { emotion: "angry", confidence: 0.9 },
+      worried: { emotion: "anxious", confidence: 0.8 },
+      nervous: { emotion: "anxious", confidence: 0.8 },
+      tense: { emotion: "anxious", confidence: 0.8 },
+      restless: { emotion: "anxious", confidence: 0.75 },
+      panicked: { emotion: "anxious", confidence: 0.85 },
+      fear: { emotion: "anxious", confidence: 0.8 },
+      dread: { emotion: "anxious", confidence: 0.8 },
+      anxiety: { emotion: "anxious", confidence: 0.9 },
+      panic: { emotion: "anxious", confidence: 0.85 },
+      insecure: { emotion: "anxious", confidence: 0.8 },
+      uncertain: { emotion: "anxious", confidence: 0.75 },
+      exhausted: { emotion: "tired", confidence: 0.85 },
+      sleepy: { emotion: "tired", confidence: 0.8 },
+      drained: { emotion: "tired", confidence: 0.8 },
+      weary: { emotion: "tired", confidence: 0.8 },
+      fatigued: { emotion: "tired", confidence: 0.85 },
+      burnout: { emotion: "tired", confidence: 0.85 },
+      alone: { emotion: "lonely", confidence: 0.85 },
+      isolated: { emotion: "lonely", confidence: 0.85 },
+      abandoned: { emotion: "lonely", confidence: 0.85 },
+      loneliness: { emotion: "lonely", confidence: 0.9 },
+      desolate: { emotion: "lonely", confidence: 0.85 },
+      unloved: { emotion: "lonely", confidence: 0.85 },
+      calm: { emotion: "peaceful", confidence: 0.85 },
+      relaxed: { emotion: "peaceful", confidence: 0.85 },
+      serene: { emotion: "peaceful", confidence: 0.85 },
+      tranquil: { emotion: "peaceful", confidence: 0.85 },
+      relief: { emotion: "peaceful", confidence: 0.8 },
+      comfort: { emotion: "peaceful", confidence: 0.8 },
+      enthusiastic: { emotion: "excited", confidence: 0.85 },
+      eager: { emotion: "excited", confidence: 0.85 },
+      thrilled: { emotion: "excited", confidence: 0.85 },
+      energized: { emotion: "excited", confidence: 0.85 },
+      breakup: { emotion: "sad", confidence: 0.9 },
+      heartbreak: { emotion: "sad", confidence: 0.9 },
+      rejection: { emotion: "sad", confidence: 0.85 },
+      betrayal: { emotion: "sad", confidence: 0.85 },
+      stress: { emotion: "stressed", confidence: 0.9 },
+      overwhelmed: { emotion: "overwhelmed", confidence: 0.9 },
+      frustration: { emotion: "frustrated", confidence: 0.85 },
+      nostalgic: { emotion: "nostalgic", confidence: 0.85 },
+      curious: { emotion: "curious", confidence: 0.85 },
+      boredom: { emotion: "bored", confidence: 0.85 },
     };
     for (const keyword in keywordToEmotion) {
       if (text.includes(keyword)) {
-        return keywordToEmotion[keyword];
+        detectedEmotions.push({
+          emotion: keywordToEmotion[keyword].emotion,
+          confidence: keywordToEmotion[keyword].confidence,
+        });
       }
     }
-    return null;
+    if (detectedEmotions.length > 0) {
+      detectedEmotions.sort((a, b) => b.confidence - a.confidence);
+      return detectedEmotions[0].emotion;
+    }
+    const positiveWords = ["good", "great", "awesome", "fantastic", "wonderful"];
+    const negativeWords = ["bad", "terrible", "awful", "horrible", "sad"];
+    if (positiveWords.some((word) => text.includes(word))) {
+      return "happy";
+    }
+    if (negativeWords.some((word) => text.includes(word))) {
+      return "sad";
+    }
+    return "neutral";
   };
 
   const isEmotionRelated = (text) => {
     text = text.toLowerCase();
     const mentalHealthKeywords = [
       ...Object.keys(emotionToGenreMap),
+      "suggest",
+      "help",
       "joyful",
       "ecstatic",
       "contented",
@@ -559,61 +532,174 @@ const Chat = ({ darkMode }) => {
         params: {
           type: "movie",
           genre: genre,
+          averageRatingFrom: "5",
+          averageRatingTo: "10",
           rows: "3",
-          sortOrder: "ASC",
           sortField: "id",
         },
         headers: {
-          "x-rapidapi-key":
-            "064e5cdf15msha2b994f0da22a49p107ebajsnaea164ace7a2",
+          "x-rapidapi-key": "064e5cdf15msha2b994f0da22a49p107ebajsnaea164ace7a2",
           "x-rapidapi-host": "imdb236.p.rapidapi.com",
         },
       };
       const response = await axios.request(options);
-      console.log("Movie API response:", response.data);
-      return response.data;
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
-      console.error("Error fetching movie recommendations:", error);
-      return { results: [] };
+      setError("Failed to fetch movie recommendations. Please try again.");
+      return [];
     } finally {
       setLoadingMovies(false);
     }
   };
 
-  const fetchMusicRecommendations = async (genre) => {
+  const fetchMusicRecommendations = async (genre, emotion, retry = false) => {
+    setLoadingMusic(true);
     try {
-      const clientId = "YOUR_JAMENDO_CLIENT_ID"; // Replace with your Jamendo client ID
-      const response = await axios.get("https://api.jamendo.com/v3.0/tracks", {
-        params: {
-          client_id: clientId,
-          format: "json",
-          limit: 3,
-          tags: genre,
-          order: "popularity_total",
-        },
-      });
-      console.log("Music API response:", response.data);
-      return response.data.results || [];
+      const prompt = `
+        You are a music recommendation expert assisting a user who is feeling ${emotion} ${emotionToGenreMap[emotion]?.emoji || "😶"}. Based on this emotion, the assigned music genre is "${genre.replace("_", "-")}".
+        Provide exactly three real, well-known songs that match this mood and genre. For each song, include:
+        - name: The song title (string)
+        - artist: The artist name (string)
+        - album: The album name, if known; otherwise, use an empty string (string)
+        Return the response as a valid JSON array of objects, e.g.:
+        [
+          {"name": "Song Title", "artist": "Artist Name", "album": "Album Name"},
+          {"name": "Song Title 2", "artist": "Artist Name 2", "album": ""},
+          {"name": "Song Title 3", "artist": "Artist Name 3", "album": "Album Name 3"}
+        ]
+        Ensure the response is pure JSON without markdown (no \`\`\`json or other formatting).
+        If the genre is niche (e.g., lo_fi, singer_songwriter), select popular, recognizable songs that align with the ${emotion} mood and "${genre.replace("_", "-")}" genre.
+        The songs should be appropriate for emotional wellness and reflect the user's ${emotion} mood.
+      `;
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: prompt,
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.3,
+              maxOutputTokens: 512,
+            },
+          }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const responseData = await response.json();
+      let musicData = [];
+      if (
+        responseData &&
+        responseData.candidates &&
+        responseData.candidates[0] &&
+        responseData.candidates[0].content &&
+        responseData.candidates[0].content.parts &&
+        responseData.candidates[0].content.parts[0]
+      ) {
+        const text = responseData.candidates[0].content.parts[0].text;
+        try {
+          musicData = JSON.parse(text);
+        } catch (directParseError) {
+          const jsonMatch = text.match(/\[[\s\S]*?\]/);
+          if (jsonMatch) {
+            musicData = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error("No valid JSON array found in response");
+          }
+        }
+        if (!Array.isArray(musicData) || musicData.length === 0) {
+          throw new Error("Response is not a valid array or is empty");
+        }
+        musicData = musicData
+          .slice(0, 3)
+          .map((track) => ({
+            name: track.name?.trim() || "Unknown Song",
+            artist: track.artist?.trim() || "Unknown Artist",
+            album: track.album?.trim() || "",
+          }))
+          .filter((track) => track.name && track.artist);
+        if (musicData.length < 1 && !retry) {
+          return fetchMusicRecommendations(genre, emotion, true);
+        }
+        if (musicData.length < 1) {
+          throw new Error("Failed to retrieve valid music recommendations after retry");
+        }
+      } else {
+        throw new Error("Invalid response structure from Gemini API");
+      }
+      return musicData;
     } catch (error) {
-      console.error("Error fetching music recommendations:", error);
+      setError("Failed to fetch music recommendations from Gemini. Please try again later.");
       return [];
+    } finally {
+      setLoadingMusic(false);
     }
   };
 
-  const fetchBookRecommendations = async (genre) => {
+  const fetchBookRecommendations = async (genre, retry = false) => {
+    setLoadingBooks(true);
     try {
-      const response = await axios.get("https://openlibrary.org/search.json", {
+      const randomSeed = Math.floor(Math.random() * 50);
+      const queryGenre = retry ? "bestsellers" : genre;
+      const response = await axios.get("https://www.googleapis.com/books/v1/volumes", {
         params: {
-          q: `subject:${genre}`,
-          limit: 3,
-          sort: "editions",
+          q: `subject:${queryGenre}`,
+          maxResults: 10,
+          startIndex: randomSeed,
+          orderBy: "relevance",
+          key: apiKey,
         },
       });
-      console.log("Book API response:", response.data);
-      return response.data.docs || [];
+      const books = response.data.items
+        ? response.data.items.slice(0, 3).map((item) => ({
+            title: item.volumeInfo.title || "Unknown Title",
+            author_name: item.volumeInfo.authors || ["Unknown Author"],
+            first_publish_year: item.volumeInfo.publishedDate?.split("-")[0] || "Unknown Year",
+            cover_i: item.volumeInfo.imageLinks?.thumbnail,
+          }))
+        : [];
+      if (books.length === 0 && !retry) {
+        return fetchBookRecommendations(genre, true);
+      }
+      return books;
     } catch (error) {
-      console.error("Error fetching book recommendations:", error);
+      setError("Failed to fetch book recommendations. Please try again later.");
       return [];
+    } finally {
+      setLoadingBooks(false);
+    }
+  };
+
+  const saveChatSession = async () => {
+    try {
+      const sessionId = `${user.uid}_${Date.now()}`;
+      const sessionDocRef = doc(db, "chatSessions", sessionId);
+      await setDoc(sessionDocRef, {
+        userId: user.uid,
+        chatHistory: messages,
+        detectedEmotion: currentEmotion,
+        responses,
+        timestamp: serverTimestamp(),
+        recommendations: {
+          movies: movieRecommendations,
+          music: musicRecommendations,
+          books: bookRecommendations,
+        },
+      });
+    } catch (error) {
+      setError("Failed to save your chat session. Please try again.");
     }
   };
 
@@ -625,22 +711,17 @@ const Chat = ({ darkMode }) => {
     setShowBookRecommendations(false);
     const newMessage = {
       sender: "You",
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       text: messageText,
     };
     setMessages((prev) => [...prev, newMessage]);
     setUserInput("");
     setLoading(true);
+    setMessageCount((prev) => prev + 1);
     if (!customQuestion && !isEmotionRelated(messageText)) {
       const nonEmotionMessage = {
         sender: "MindMosaic AI",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         text: "I’m here to support your mental wellness, so I can’t assist with that question. Instead, let’s focus on you—how are you feeling today? Maybe there’s something on your mind you’d like to share, or I can suggest some calming activities to lift your spirits! 😊",
         showButtons: false,
       };
@@ -649,9 +730,11 @@ const Chat = ({ darkMode }) => {
       return;
     }
     const detectedEmotion = detectEmotion(messageText);
-    if (detectedEmotion && !emotionDetected) {
-      setEmotionDetected(true);
+    if (detectedEmotion) {
       setCurrentEmotion(detectedEmotion);
+      setFixedGenre(emotionToGenreMap[detectedEmotion]?.music || "pop");
+      setEmotionDetected(true);
+      setResponses((prev) => ({ ...prev, feeling: detectedEmotion }));
     }
     try {
       let prompt = "";
@@ -659,9 +742,7 @@ const Chat = ({ darkMode }) => {
         prompt = `You are MindMosaic AI, a mental health assistant dedicated to improving the user's emotional wellness.
                   Previous conversation: ${JSON.stringify(messages)}
                   User message: ${messageText}
-                  The user seems to be feeling ${
-                    currentEmotion || detectedEmotion
-                  }, possibly due to a life event or emotional state (e.g., breakup, stress, loss).
+                  The user seems to be feeling ${currentEmotion || detectedEmotion}, possibly due to a life event or emotional state (e.g., breakup, stress, loss).
                   Provide a warm, empathetic response that acknowledges their feelings and any mentioned life events.
                   Offer gentle suggestions for activities (e.g., watching a movie, listening to music, reading a book, or self-care practices) that could support their well-being and align with their mood.
                   Keep the response concise, supportive, and uplifting, ending with an encouraging invitation to share more or try a suggested activity.`;
@@ -699,7 +780,6 @@ const Chat = ({ darkMode }) => {
         }
       );
       const responseData = await response.json();
-      console.log("Gemini API response:", responseData);
       let botReply = "Sorry, I couldn't understand.";
       if (
         responseData &&
@@ -713,26 +793,21 @@ const Chat = ({ darkMode }) => {
       }
       const aiMessage = {
         sender: "MindMosaic AI",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         text: botReply,
         showButtons: emotionDetected || detectedEmotion !== null,
       };
       setMessages((prev) => [...prev, aiMessage]);
-      if (detectedEmotion && !emotionDetected) {
-        setEmotionDetected(true);
-        setCurrentEmotion(detectedEmotion);
+      if ((detectedEmotion && !emotionDetected) || messageCount >= 2) {
+        await saveChatSession();
+        if (onCheckInComplete) {
+          onCheckInComplete(responses);
+        }
       }
     } catch (error) {
-      console.error("Error fetching Gemini response:", error);
       const errorMessage = {
         sender: "MindMosaic AI",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         text: `I'm having trouble connecting right now, but I’m here for you. Try sharing how you’re feeling, and I can suggest some ways to find comfort or calm. 😊`,
         showButtons: false,
       };
@@ -747,32 +822,26 @@ const Chat = ({ darkMode }) => {
     setShowMusicRecommendations(false);
     setShowBookRecommendations(false);
     const emotion = currentEmotion || "neutral";
-    const genre = emotionToGenreMap[emotion]?.[type] || "Action";
+    const genre = emotionToGenreMap[emotion]?.music || "pop";
     if (type === "movie") {
       setLoadingMovies(true);
+      const movieGenre = emotionToGenreMap[emotion]?.movie || "Action";
       try {
-        const movieData = await fetchMovieRecommendations(genre);
-        setMovieRecommendations(movieData.results || []);
+        const movieData = await fetchMovieRecommendations(movieGenre);
+        setMovieRecommendations(movieData);
         setShowMovieRecommendations(true);
         const movieMessage = {
           sender: "MindMosaic AI",
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          text: `Based on your ${emotion} mood, I think you might enjoy these ${genre} movies:`,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          text: `Based on your ${emotion} mood ${emotionToGenreMap[emotion]?.emoji || "😶"}, here are some ${movieGenre} movie recommendations:`,
           showButtons: true,
         };
         setMessages((prev) => [...prev, movieMessage]);
       } catch (error) {
-        console.error("Error handling movie recommendation:", error);
         const errorMessage = {
           sender: "MindMosaic AI",
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          text: `I'd like to recommend some ${genre} movies based on your mood, but I'm having trouble accessing them right now. Would you like to try again later?`,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          text: `I'd like to recommend some ${movieGenre} movies based on your mood ${emotionToGenreMap[emotion]?.emoji || "😶"}, but I'm having trouble accessing them right now. Would you like to try again later?`,
           showButtons: true,
         };
         setMessages((prev) => [...prev, errorMessage]);
@@ -782,28 +851,21 @@ const Chat = ({ darkMode }) => {
     } else if (type === "music") {
       setLoadingMusic(true);
       try {
-        const musicData = await fetchMusicRecommendations(genre);
+        const musicData = await fetchMusicRecommendations(genre, emotion);
         setMusicRecommendations(musicData);
         setShowMusicRecommendations(true);
         const musicMessage = {
           sender: "MindMosaic AI",
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          text: `Based on your ${emotion} mood, here are some ${genre} music recommendations:`,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          text: `Based on your ${emotion} mood ${emotionToGenreMap[emotion]?.emoji || "😶"}, here are some ${genre.replace("_", "-")} music recommendations:`,
           showButtons: true,
         };
         setMessages((prev) => [...prev, musicMessage]);
       } catch (error) {
-        console.error("Error handling music recommendation:", error);
         const errorMessage = {
           sender: "MindMosaic AI",
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          text: `I'd like to recommend some ${genre} music based on your mood, but I'm having trouble accessing them right now. Would you like to try again later?`,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          text: `I'd like to recommend some ${genre.replace("_", "-")} music based on your mood ${emotionToGenreMap[emotion]?.emoji || "😶"}, but I'm having trouble accessing them right now. Would you like to try again later?`,
           showButtons: true,
         };
         setMessages((prev) => [...prev, errorMessage]);
@@ -812,29 +874,23 @@ const Chat = ({ darkMode }) => {
       }
     } else if (type === "book") {
       setLoadingBooks(true);
+      const bookGenre = emotionToGenreMap[emotion]?.book || "bestsellers";
       try {
-        const bookData = await fetchBookRecommendations(genre);
+        const bookData = await fetchBookRecommendations(bookGenre);
         setBookRecommendations(bookData);
         setShowBookRecommendations(true);
         const bookMessage = {
           sender: "MindMosaic AI",
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          text: `Based on your ${emotion} mood, here are some ${genre} book recommendations:`,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          text: `Based on your ${emotion} mood ${emotionToGenreMap[emotion]?.emoji || "😶"}, here are some ${bookGenre} book recommendations:`,
           showButtons: true,
         };
         setMessages((prev) => [...prev, bookMessage]);
       } catch (error) {
-        console.error("Error handling book recommendation:", error);
         const errorMessage = {
           sender: "MindMosaic AI",
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          text: `I'd like to recommend some ${genre} books based on your mood, but I'm having trouble accessing them right now. Would you like to try again later?`,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          text: `I'd like to recommend some ${bookGenre} books based on your mood ${emotionToGenreMap[emotion]?.emoji || "😶"}, but I'm having trouble accessing them right now. Would you like to try again later?`,
           showButtons: true,
         };
         setMessages((prev) => [...prev, errorMessage]);
@@ -847,30 +903,31 @@ const Chat = ({ darkMode }) => {
   return (
     <div
       className={`p-6 max-w-8xl mx-auto h-full rounded-lg shadow-sm border transition-colors duration-300 ${
-        darkMode
-          ? "bg-gray-800 text-white border-gray-700"
-          : "bg-white text-gray-800 border-gray-100"
+        darkMode ? "bg-gray-800 text-white border-gray-700" : "bg-white text-gray-800 border-gray-100"
       }`}
     >
+      {error && (
+        <div
+          className={`p-4 mb-4 rounded-lg ${
+            darkMode ? "bg-red-900 text-red-200" : "bg-red-100 text-red-800"
+          }`}
+        >
+          {error}
+        </div>
+      )}
       <h1
-        className={`text-2xl font-bold mb-6 ${
-          darkMode ? "text-white" : "text-gray-800"
-        }`}
+        className={`text-2xl font-bold mb-6 ${darkMode ? "text-white" : "text-gray-800"}`}
       >
-        Hi,{JSON.stringify(user.displayName)}
+        Hi, {user.displayName}
       </h1>
       <div className="w-full">
         <div
           className={`border rounded-lg p-4 mb-4 h-[550px] flex flex-col transition-all duration-300 ${
-            darkMode
-              ? "bg-gray-900 border-gray-600"
-              : "bg-gray-50 border-gray-600"
+            darkMode ? "bg-gray-900 border-gray-600" : "bg-gray-50 border-gray-600"
           }`}
         >
           <h2
-            className={`text-xl font-bold mb-4 ${
-              darkMode ? "text-white" : "text-gray-800"
-            }`}
+            className={`text-xl font-bold mb-4 ${darkMode ? "text-white" : "text-gray-800"}`}
           >
             Chat Board
           </h2>
@@ -892,9 +949,7 @@ const Chat = ({ darkMode }) => {
                 }`}
               >
                 <p
-                  className={`text-sm ${
-                    darkMode ? "text-gray-300" : "text-gray-500"
-                  }`}
+                  className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-500"}`}
                 >
                   {msg.sender} - {msg.time}
                 </p>
@@ -904,9 +959,7 @@ const Chat = ({ darkMode }) => {
                     <button
                       onClick={() => handleRecommendationClick("movie")}
                       className={`px-3 py-1 rounded-full text-sm text-white ${
-                        darkMode
-                          ? "bg-blue-600 hover:bg-blue-700"
-                          : "bg-blue-500 hover:bg-blue-600"
+                        darkMode ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-500 hover:bg-blue-600"
                       }`}
                     >
                       🎬 Movie
@@ -914,9 +967,7 @@ const Chat = ({ darkMode }) => {
                     <button
                       onClick={() => handleRecommendationClick("music")}
                       className={`px-3 py-1 rounded-full text-sm text-white ${
-                        darkMode
-                          ? "bg-green-600 hover:bg-green-700"
-                          : "bg-green-500 hover:bg-green-600"
+                        darkMode ? "bg-green-600 hover:bg-green-700" : "bg-green-500 hover:bg-green-600"
                       }`}
                     >
                       🎵 Music
@@ -924,9 +975,7 @@ const Chat = ({ darkMode }) => {
                     <button
                       onClick={() => handleRecommendationClick("book")}
                       className={`px-3 py-1 rounded-full text-sm text-white ${
-                        darkMode
-                          ? "bg-purple-500 hover:bg-purple-600"
-                          : "bg-purple-600 hover:bg-purple-700"
+                        darkMode ? "bg-purple-500 hover:bg-purple-600" : "bg-purple-600 hover:bg-purple-700"
                       }`}
                     >
                       📚 Book
@@ -947,9 +996,7 @@ const Chat = ({ darkMode }) => {
                   }`}
                 ></div>
                 <p
-                  className={`text-sm ${
-                    darkMode ? "text-gray-300" : "text-gray-500"
-                  }`}
+                  className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-500"}`}
                 >
                   MindMosaic AI - typing...
                 </p>
@@ -961,11 +1008,7 @@ const Chat = ({ darkMode }) => {
                   darkMode ? "bg-gray-600" : "bg-gray-200"
                 }`}
               >
-                <p
-                  className={`text-sm mb-2 font-bold ${
-                    darkMode ? "text-gray-300" : "text-gray-600"
-                  }`}
-                >
+                <p className={`text-sm mb-2 font-bold ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
                   Movie Recommendations Based on Your Mood
                 </p>
                 {loadingMovies ? (
@@ -975,11 +1018,7 @@ const Chat = ({ darkMode }) => {
                         darkMode ? "border-t-blue-400" : "border-t-blue-500"
                       }`}
                     ></div>
-                    <p
-                      className={`text-sm ${
-                        darkMode ? "text-gray-300" : "text-gray-500"
-                      }`}
-                    >
+                    <p className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-500"}`}>
                       Loading recommendations...
                     </p>
                   </div>
@@ -987,22 +1026,20 @@ const Chat = ({ darkMode }) => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {movieRecommendations.map((movie, idx) => (
                       <div
-                        key={idx}
+                        key={movie.id || idx}
                         className={`p-2 rounded border ${
-                          darkMode
-                            ? "bg-gray-700 border-gray-500"
-                            : "bg-white border-gray-300"
+                          darkMode ? "bg-gray-700 border-gray-500" : "bg-white border-gray-300"
                         }`}
                       >
                         <div className="aspect-w-3 aspect-h-4 mb-2">
-                          {movie.image || movie.poster ? (
+                          {movie.primaryImage ? (
                             <img
-                              src={movie.image || movie.poster}
-                              alt={movie.name || movie.title || "Movie poster"}
+                              src={movie.primaryImage}
+                              alt={movie.primaryTitle || "Movie poster"}
                               className="w-full h-32 object-cover rounded"
                               onError={(e) => {
                                 e.target.onerror = null;
-                                e.target.src = "/api/placeholder/240/360";
+                                e.target.src = "https://via.placeholder.com/240x360";
                               }}
                             />
                           ) : (
@@ -1011,26 +1048,15 @@ const Chat = ({ darkMode }) => {
                             </div>
                           )}
                         </div>
-                        <h3 className="font-bold text-sm">
-                          {movie.name || movie.title || "Unknown Title"}
-                        </h3>
+                        <h3 className="font-bold text-sm">{movie.primaryTitle || "Unknown Title"}</h3>
                         <p className="text-xs mt-1">
-                          {(movie.description || movie.overview)?.substring(
-                            0,
-                            50
-                          ) || "No description available"}
-                          {(movie.description || movie.overview)?.length > 50
-                            ? "..."
-                            : ""}
+                          {movie.description?.substring(0, 50) || "No description available"}
+                          {movie.description?.length > 50 ? "..." : ""}
                         </p>
                         <div className="flex items-center mt-2">
                           <span className="text-yellow-500">★</span>
-                          <span className="text-xs ml-1">
-                            {movie.rating || movie.vote_average || "N/A"}
-                          </span>
-                          <span className="text-xs ml-auto">
-                            {movie.year || movie.release_date || "Unknown year"}
-                          </span>
+                          <span className="text-xs ml-1">{movie.averageRating || "N/A"}</span>
+                          <span className="text-xs ml-auto">{movie.startYear || "Unknown year"}</span>
                         </div>
                       </div>
                     ))}
@@ -1044,9 +1070,7 @@ const Chat = ({ darkMode }) => {
                   <button
                     onClick={() => setShowMovieRecommendations(false)}
                     className={`px-3 py-1 rounded-full text-xs text-white ${
-                      darkMode
-                        ? "bg-gray-500 hover:bg-gray-600"
-                        : "bg-gray-400 hover:bg-gray-500"
+                      darkMode ? "bg-gray-500 hover:bg-gray-600" : "bg-gray-400 hover:bg-gray-500"
                     }`}
                   >
                     Close Recommendations
@@ -1056,9 +1080,7 @@ const Chat = ({ darkMode }) => {
             )}
             {showMusicRecommendations && (
               <div
-                className={`rounded-lg p-3 border-2 ${
-                  darkMode ? "bg-gray-600" : "bg-gray-200"
-                }`}
+                className={`rounded-lg p-3 border-2 ${darkMode ? "bg-gray-600" : "bg-gray-200"}`}
               >
                 <p
                   className={`text-sm mb-2 font-bold ${
@@ -1075,9 +1097,7 @@ const Chat = ({ darkMode }) => {
                       }`}
                     ></div>
                     <p
-                      className={`text-sm ${
-                        darkMode ? "text-gray-300" : "text-gray-500"
-                      }`}
+                      className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-500"}`}
                     >
                       Loading recommendations...
                     </p>
@@ -1088,53 +1108,25 @@ const Chat = ({ darkMode }) => {
                       <div
                         key={idx}
                         className={`p-2 rounded border ${
-                          darkMode
-                            ? "bg-gray-700 border-gray-500"
-                            : "bg-white border-gray-300"
+                          darkMode ? "bg-gray-700 border-gray-500" : "bg-white border-gray-300"
                         }`}
                       >
-                        <div className="aspect-w-3 aspect-h-4 mb-2">
-                          {track.image ? (
-                            <img
-                              src={track.image}
-                              alt={track.name || "Track cover"}
-                              className="w-full h-32 object-cover rounded"
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = "/api/placeholder/240/360";
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-32 bg-gray-300 rounded flex items-center justify-center text-gray-500">
-                              No image
-                            </div>
-                          )}
-                        </div>
-                        <h3 className="font-bold text-sm">
-                          {track.name || "Unknown Track"}
-                        </h3>
-                        <p className="text-xs mt-1">
-                          {track.artist_name || "Unknown Artist"}
-                        </p>
-                        <p className="text-xs">
-                          {track.album_name || "Unknown Album"}
-                        </p>
+                        <h3 className="font-bold text-sm">{track.name || "Unknown Track"}</h3>
+                        <p className="text-xs mt-1">{track.artist || "Unknown Artist"}</p>
+                        {track.album && <p className="text-xs">{track.album}</p>}
                       </div>
                     ))}
                   </div>
                 ) : (
                   <p className="text-sm italic">
-                    No music recommendations found. Try a different mood or
-                    category.
+                    Unable to load music recommendations. Please try again.
                   </p>
                 )}
                 <div className="mt-3 flex justify-end">
                   <button
                     onClick={() => setShowMusicRecommendations(false)}
                     className={`px-3 py-1 rounded-full text-xs text-white ${
-                      darkMode
-                        ? "bg-gray-500 hover:bg-gray-600"
-                        : "bg-gray-400 hover:bg-gray-500"
+                      darkMode ? "bg-gray-500 hover:bg-gray-600" : "bg-gray-400 hover:bg-gray-500"
                     }`}
                   >
                     Close Recommendations
@@ -1144,9 +1136,7 @@ const Chat = ({ darkMode }) => {
             )}
             {showBookRecommendations && (
               <div
-                className={`rounded-lg p-3 border-2 ${
-                  darkMode ? "bg-gray-600" : "bg-gray-200"
-                }`}
+                className={`rounded-lg p-3 border-2 ${darkMode ? "bg-gray-600" : "bg-gray-200"}`}
               >
                 <p
                   className={`text-sm mb-2 font-bold ${
@@ -1163,9 +1153,7 @@ const Chat = ({ darkMode }) => {
                       }`}
                     ></div>
                     <p
-                      className={`text-sm ${
-                        darkMode ? "text-gray-300" : "text-gray-500"
-                      }`}
+                      className={`text-sm ${darkMode ? "text-gray-300" : "text-gray-500"}`}
                     >
                       Loading recommendations...
                     </p>
@@ -1176,20 +1164,18 @@ const Chat = ({ darkMode }) => {
                       <div
                         key={idx}
                         className={`p-2 rounded border ${
-                          darkMode
-                            ? "bg-gray-700 border-gray-500"
-                            : "bg-white border-gray-300"
+                          darkMode ? "bg-gray-700 border-gray-500" : "bg-white border-gray-300"
                         }`}
                       >
                         <div className="aspect-w-3 aspect-h-4 mb-2">
                           {book.cover_i ? (
                             <img
-                              src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
+                              src={book.cover_i}
                               alt={book.title || "Book cover"}
                               className="w-full h-32 object-cover rounded"
                               onError={(e) => {
                                 e.target.onerror = null;
-                                e.target.src = "/api/placeholder/240/360";
+                                e.target.src = "https://via.placeholder.com/240x360";
                               }}
                             />
                           ) : (
@@ -1198,31 +1184,24 @@ const Chat = ({ darkMode }) => {
                             </div>
                           )}
                         </div>
-                        <h3 className="font-bold text-sm">
-                          {book.title || "Unknown Title"}
-                        </h3>
+                        <h3 className="font-bold text-sm">{book.title || "Unknown Title"}</h3>
                         <p className="text-xs mt-1">
                           {book.author_name?.join(", ") || "Unknown Author"}
                         </p>
-                        <p className="text-xs">
-                          {book.first_publish_year || "Unknown Year"}
-                        </p>
+                        <p className="text-xs">{book.first_publish_year || "Unknown Year"}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <p className="text-sm italic">
-                    No book recommendations found. Try a different mood or
-                    category.
+                    No book recommendations found. Try a different mood or category.
                   </p>
                 )}
                 <div className="mt-3 flex justify-end">
                   <button
                     onClick={() => setShowBookRecommendations(false)}
                     className={`px-3 py-1 rounded-full text-xs text-white ${
-                      darkMode
-                        ? "bg-gray-500 hover:bg-gray-600"
-                        : "bg-gray-400 hover:bg-gray-500"
+                      darkMode ? "bg-gray-500 hover:bg-gray-600" : "bg-gray-400 hover:bg-gray-500"
                     }`}
                   >
                     Close Recommendations
@@ -1233,48 +1212,45 @@ const Chat = ({ darkMode }) => {
           </div>
         </div>
         <div
-          className={`border rounded-lg p-2 ${
-            darkMode
-              ? "border-gray-600 bg-gray-700"
-              : "border-gray-600 bg-white"
+          className={`border rounded-lg p-2 flex items-center ${
+            darkMode ? "border-gray-600 bg-gray-700" : "border-gray-300 bg-white"
           }`}
         >
-          <div className="flex items-center">
-            <input
-              type="text"
-              placeholder="Type your message here..."
-              className={`flex-1 bg-transparent border-none focus:outline-none ${
-                darkMode ? "text-gray-200" : "text-gray-800"
-              }`}
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-            />
-            <button
-              onClick={() => handleSendMessage()}
-              disabled={loading}
-              className={`ml-2 rounded-full p-2 ${
-                loading
-                  ? "bg-purple-400 cursor-not-allowed"
-                  : darkMode
-                  ? "bg-purple-500 hover:bg-purple-600"
-                  : "bg-purple-600 hover:bg-purple-700"
-              }`}
+          <input
+            type="text"
+            placeholder="Type your message here..."
+            className={`flex-1 bg-transparent border-none focus:outline-none px-3 py-2 ${
+              darkMode ? "text-gray-200 placeholder-gray-400" : "text-gray-800 placeholder-gray-500"
+            }`}
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+          />
+          <button
+            onClick={() => handleSendMessage()}
+            disabled={loading}
+            className={`ml-2 rounded-full p-3 ${
+              loading
+                ? "bg-purple-400 cursor-not-allowed"
+                : darkMode
+                ? "bg-purple-500 hover:bg-purple-600"
+                : "bg-purple-600 hover:bg-purple-700"
+            } transition-colors duration-200`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 text-white"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-white"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          </div>
+              <path d="M22 2 11 13" />
+              <path d="M22 2 15 22 11 13 2 9 22 2z" />
+            </svg>
+          </button>
         </div>
       </div>
     </div>

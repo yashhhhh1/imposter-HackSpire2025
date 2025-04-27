@@ -48,9 +48,10 @@ import {
   Book,
 } from "lucide-react";
 import { db } from "../firebase/firebase.config"; // Import Firestore instance
-import { doc, onSnapshot } from "firebase/firestore"; // Firestore methods
+import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
 import Chat from "./Chat";
-
+import { useContext } from "react";
+import { AuthContext } from "../Context/AuthProvider";
 export default function EnhancedMentalHealthDashboard({ userId }) {
   // Assume userId is passed as a prop
   const [moodData, setMoodData] = useState(null);
@@ -63,17 +64,17 @@ export default function EnhancedMentalHealthDashboard({ userId }) {
   const [selectedTimeRange, setSelectedTimeRange] = useState("week");
   const [showNotifications, setShowNotifications] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-
+  
   // const [currentQuestion, setCurrentQuestion] = useState(0);
-  // const [responses, setResponses] = useState({
-  //   feeling: '',
-  //   energy: '',
-  //   stress: '',
-  //   sleep: '',
-  //   social: '',
-  //   work: ''
-  // });
-
+  const [responses, setResponses] = useState({
+    feeling: '',
+    energy: '',
+    stress: '',
+    sleep: '',
+    social: '',
+    work: ''
+  });
+  const { logout } = useContext(AuthContext);
   // Fetch user data from Firestore onboardingAnswers collection
   useEffect(() => {
     if (!userId) {
@@ -85,7 +86,6 @@ export default function EnhancedMentalHealthDashboard({ userId }) {
     setIsLoading(true);
     const answerDocRef = doc(db, "onboardingAnswers", userId);
 
-    // Set up real-time listener
     const unsubscribe = onSnapshot(
       answerDocRef,
       (docSnapshot) => {
@@ -95,7 +95,6 @@ export default function EnhancedMentalHealthDashboard({ userId }) {
             ...data,
             timestamp: data.timestamp?.toDate() || new Date(),
           });
-          console.log("User data:", data);
           setError(null);
         } else {
           setError("Onboarding answers not found");
@@ -109,7 +108,6 @@ export default function EnhancedMentalHealthDashboard({ userId }) {
       }
     );
 
-    // Cleanup listener on unmount
     return () => unsubscribe();
   }, [userId]);
 
@@ -117,8 +115,10 @@ export default function EnhancedMentalHealthDashboard({ userId }) {
   useEffect(() => {
     setMoodData(generateMoodData(userData, selectedTimeRange));
   }, [userData, selectedTimeRange]);
-
-  // Apply dark mode effect
+  const  handlelogout = () => {
+    logout();
+  }
+  // Dark mode effect (unchanged)
   useEffect(() => {
     const body = document.querySelector("body");
     if (darkMode) {
@@ -127,8 +127,38 @@ export default function EnhancedMentalHealthDashboard({ userId }) {
       body.classList.remove("dark-theme");
     }
   }, [darkMode]);
+  const saveChatSession = async (sessionData) => {
+    try {
+      // Create a unique document ID for the chat session (e.g., using timestamp or UUID)
+      const sessionId = `${userId}_${Date.now()}`;
+      const sessionDocRef = doc(db, "chatSessions", sessionId);
+
+      // Save data to Firestore
+      await setDoc(sessionDocRef, {
+        userId,
+        responses: sessionData.responses || responses,
+        timestamp: serverTimestamp(),
+        checkInCompleted: checkInCompleted,
+        // Add other relevant data, e.g., mood score or wellbeing factors
+        wellbeingScore: calculateWellbeingScore(userData),
+      });
+
+      console.log("Chat session saved successfully!");
+    } catch (error) {
+      console.error("Error saving chat session:", error);
+      setError("Failed to save chat session");
+    }
+  };
+  const handleCheckInComplete = (newResponses) => {
+    setResponses(newResponses);
+    setCheckInCompleted(true);
+    saveChatSession({ responses: newResponses });
+  };
 
   // Calculate wellbeing score
+  // const handlelogout ()=>{
+  //   logout();
+  // }
   const calculateWellbeingScore = (data) => {
     if (!data) return 7.2; // Default value
     let score = 0;
@@ -178,61 +208,61 @@ export default function EnhancedMentalHealthDashboard({ userId }) {
       return [
         {
           day: "Mon",
-          score: Math.min(Math.max(baseScore - 0.7, 1), 10),
-          anxiety: 3.2,
+          score: null,
+          anxiety: null,
         },
         {
           day: "Tue",
-          score: Math.min(Math.max(baseScore - 0.2, 1), 10),
-          anxiety: 2.8,
+          score: null,
+          anxiety: null,
         },
         {
           day: "Wed",
-          score: Math.min(Math.max(baseScore + 0.3, 1), 10),
-          anxiety: 2.5,
+          score: null,
+          anxiety: null,
         },
         {
           day: "Thu",
-          score: Math.min(Math.max(baseScore - 1.2, 1), 10),
-          anxiety: 4.1,
+          score: null,
+          anxiety: null,
         },
         {
           day: "Fri",
-          score: Math.min(Math.max(baseScore + 1.0, 1), 10),
-          anxiety: 2.2,
+          score: null,
+          anxiety: null,
         },
         {
           day: "Sat",
-          score: Math.min(Math.max(baseScore + 1.5, 1), 10),
-          anxiety: 1.8,
+          score: null,
+          anxiety: null,
         },
         {
           day: "Sun",
           score: Math.min(Math.max(baseScore + 0.8, 1), 10),
-          anxiety: 2.0,
+          anxiety: Math.min(Math.max(5 - baseScore * 0.5, 0), 10),
         },
       ];
     } else {
       return [
         {
           week: "Week 1",
-          score: Math.min(Math.max(baseScore - 0.7, 1), 10),
-          anxiety: 3.2,
+          score: Math.min(Math.max(baseScore + 0.8, 1), 10),
+          anxiety: Math.min(Math.max(5 - baseScore * 0.5, 0), 10),
         },
         {
           week: "Week 2",
-          score: Math.min(Math.max(baseScore - 0.4, 1), 10),
-          anxiety: 2.9,
+          score: null,
+          anxiety: null,
         },
         {
           week: "Week 3",
-          score: Math.min(Math.max(baseScore + 0.5, 1), 10),
-          anxiety: 2.5,
+          score: null,
+          anxiety: null,
         },
         {
           week: "Week 4",
-          score: Math.min(Math.max(baseScore + 0.2, 1), 10),
-          anxiety: 2.3,
+          score: null,
+          anxiety: null,
         },
       ];
     }
@@ -467,111 +497,6 @@ export default function EnhancedMentalHealthDashboard({ userId }) {
 
     return activities.slice(0, 3);
   };
-
-  // Check-in questions
-  // const checkInQuestions = [
-  //   {
-  //     question: "How have you been feeling emotionally today?",
-  //     placeholder: "I've been feeling...",
-  //     field: "feeling",
-  //     options: ["Very Happy", "Content", "Neutral", "Sad", "Very Distressed"]
-  //   },
-  //   {
-  //     question: "How would you rate your energy level today?",
-  //     placeholder: "My energy is...",
-  //     field: "energy",
-  //     options: ["Very High", "High", "Moderate", "Low", "Very Low"]
-  //   },
-  //   {
-  //     question: "What's your stress level like at work recently?",
-  //     placeholder: "My work stress is...",
-  //     field: "stress",
-  //     options: ["None", "Minimal", "Moderate", "High", "Extreme"]
-  //   },
-  //   {
-  //     question: "How has your sleep quality been this week?",
-  //     placeholder: "My sleep has been...",
-  //     field: "sleep",
-  //     options: ["Excellent", "Good", "Fair", "Poor", "Very Poor"]
-  //   },
-  //   {
-  //     question: "How connected do you feel to your social circle?",
-  //     placeholder: "Socially, I feel...",
-  //     field: "social",
-  //     options: ["Very Connected", "Connected", "Somewhat Connected", "Isolated", "Very Isolated"]
-  //   },
-  //   {
-  //     question: "How are you balancing work and personal life?",
-  //     placeholder: "My work-life balance is...",
-  //     field: "work",
-  //     options: ["Excellent", "Good", "Fair", "Poor", "Terrible"]
-  //   }
-  // ];
-
-  // // Handle response selection (radio buttons)
-  // const handleOptionSelect = (option) => {
-  //   setResponses({
-  //     ...responses,
-  //     [checkInQuestions[currentQuestion].field]: option
-  //   });
-  // };
-
-  // // Handle text response change
-  // const handleResponseChange = (e) => {
-  //   setResponses({
-  //     ...responses,
-  //     [checkInQuestions[currentQuestion].field]: e.target.value
-  //   });
-  // };
-
-  // // Handle next question
-  // const handleNextQuestion = () => {
-  //   if (currentQuestion < checkInQuestions.length - 1) {
-  //     setCurrentQuestion(currentQuestion + 1);
-  //   } else {
-  //     // Process the check-in data
-  //     processCheckInData();
-  //     setCheckInCompleted(true);
-  //     setActiveSection('dashboard');
-  //   }
-  // };
-
-  // Process check-in data
-  // const processCheckInData = () => {
-  //   // This would analyze the text inputs using NLP and sentiment analysis
-  //   // For demo purposes, we're just setting some sample data
-  //   setMoodData({
-  //     overall: 7.2,
-  //     emotions: {
-  //       happiness: 65,
-  //       anxiety: 30,
-  //       sadness: 15,
-  //       calmness: 55,
-  //       stress: 40
-  //     },
-  //     factors: {
-  //       sleep: responses.sleep.length > 10 ? 60 : 40,
-  //       work: responses.work.includes('good') ? 70 : 45,
-  //       social: responses.social.includes('connected') ? 75 : 50
-  //     }
-  //   });
-  // };
-
-  // // Start new check-in
-  // const startNewCheckIn = () => {
-  //   setCheckInCompleted(false);
-  //   setCurrentQuestion(0);
-  //   setResponses({
-  //     feeling: '',
-  //     energy: '',
-  //     stress: '',
-  //     sleep: '',
-  //     social: '',
-  //     work: ''
-  //   });
-  //   setActiveSection('check-in');
-  // };
-
   // Calculate various metrics
   const wellbeingScore = userData ? calculateWellbeingScore(userData) : 7.2;
   const moodDataForChart = moodData || defaultMoodData(selectedTimeRange);
@@ -758,24 +683,6 @@ export default function EnhancedMentalHealthDashboard({ userId }) {
               <User size={20} />
               {showSidebar && <span className="ml-3">Profile</span>}
             </button>
-
-            {showSidebar && (
-              <button
-                onClick={() => setActiveSection("settings")}
-                className={`flex items-center w-full p-3 ${
-                  activeSection === "settings"
-                    ? darkMode
-                      ? "bg-gray-700 text-violet-400"
-                      : "bg-violet-100 text-violet-700"
-                    : darkMode
-                    ? "text-gray-300"
-                    : "text-gray-600"
-                }`}
-              >
-                <Settings size={20} />
-                <span className="ml-3">Settings</span>
-              </button>
-            )}
           </nav>
         </div>
 
@@ -1218,105 +1125,18 @@ export default function EnhancedMentalHealthDashboard({ userId }) {
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                <div
-                  className={`p-6 rounded-lg ${
-                    darkMode ? "bg-gray-800" : "bg-white"
-                  } shadow-md`}
-                >
-                  <h3
-                    className={`text-lg font-semibold mb-4 ${
-                      darkMode ? "text-white" : "text-gray-800"
-                    }`}
-                  >
-                    Mood & Anxiety Trends
-                  </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={moodDataForChart}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke={darkMode ? "#374151" : "#e5e7eb"}
-                      />
-                      <XAxis
-                        dataKey={selectedTimeRange === "week" ? "day" : "week"}
-                        stroke={darkMode ? "#9ca3af" : "#6b7280"}
-                      />
-                      <YAxis stroke={darkMode ? "#9ca3af" : "#6b7280"} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: darkMode ? "#1f2937" : "#ffffff",
-                          border: "none",
-                          borderRadius: "8px",
-                          color: darkMode ? "#ffffff" : "#1f2937",
-                        }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="score"
-                        stroke={MOOD_COLORS.score}
-                        fill={MOOD_COLORS.score}
-                        fillOpacity={0.3}
-                        name="Mood Score"
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="anxiety"
-                        stroke={MOOD_COLORS.anxiety}
-                        fill={MOOD_COLORS.anxiety}
-                        fillOpacity={0.3}
-                        name="Anxiety Level"
-                      />
-                      <Legend />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div
-                  className={`p-6 rounded-lg ${
-                    darkMode ? "bg-gray-800" : "bg-white"
-                  } shadow-md`}
-                >
-                  <h3
-                    className={`text-lg font-semibold mb-4 ${
-                      darkMode ? "text-white" : "text-gray-800"
-                    }`}
-                  >
-                    Wellbeing Factors Comparison
-                  </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={wellbeingFactors}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke={darkMode ? "#374151" : "#e5e7eb"}
-                      />
-                      <XAxis
-                        dataKey="name"
-                        stroke={darkMode ? "#9ca3af" : "#6b7280"}
-                      />
-                      <YAxis stroke={darkMode ? "#9ca3af" : "#6b7280"} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: darkMode ? "#1f2937" : "#ffffff",
-                          border: "none",
-                          borderRadius: "8px",
-                          color: darkMode ? "#ffffff" : "#1f2937",
-                        }}
-                      />
-                      <Bar
-                        dataKey="value"
-                        fill={MOOD_COLORS.score}
-                        name="Factor Strength"
-                      />
-                      <Legend />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
+            
             </div>
           )}
 
           {/* Other sections remain the same */}
-          {activeSection === "check-in" && <Chat darkMode={darkMode} />}
+          {activeSection === "check-in" && (
+            <Chat
+              darkMode={darkMode}
+              onCheckInComplete={handleCheckInComplete}
+              userId={userId}
+            />
+          )}
           {/* {activeSection === "insights" && (
             <div className="p-6">
               <h2
@@ -2015,181 +1835,117 @@ export default function EnhancedMentalHealthDashboard({ userId }) {
             </div>
           )}
 
-          {activeSection === "profile" && (
-            <div className="p-6 max-w-2xl mx-auto">
-              <h2
-                className={`text-2xl font-semibold mb-6 ${
-                  darkMode ? "text-white" : "text-gray-800"
-                }`}
-              >
-                Your Profile
-              </h2>
-              <div
-                className={`p-6 rounded-lg ${
-                  darkMode ? "bg-gray-800" : "bg-white"
-                } shadow-md`}
-              >
-                <div className="space-y-4">
-                  <div>
-                    <p
-                      className={`text-sm ${
-                        darkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Profession
-                    </p>
-                    <p
-                      className={`font-medium ${
-                        darkMode ? "text-white" : "text-gray-800"
-                      }`}
-                    >
-                      {userData?.profession || "Not specified"}
-                    </p>
-                  </div>
-                  <div>
-                    <p
-                      className={`text-sm ${
-                        darkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Age Range
-                    </p>
-                    <p
-                      className={`font-medium ${
-                        darkMode ? "text-white" : "text-gray-800"
-                      }`}
-                    >
-                      {userData?.age || "Not specified"}
-                    </p>
-                  </div>
-                  <div>
-                    <p
-                      className={`text-sm ${
-                        darkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Gender
-                    </p>
-                    <p
-                      className={`font-medium ${
-                        darkMode ? "text-white" : "text-gray-800"
-                      }`}
-                    >
-                      {userData?.gender || "Not specified"}
-                    </p>
-                  </div>
-                  <div>
-                    <p
-                      className={`text-sm ${
-                        darkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Coping Mechanisms
-                    </p>
-                    <p
-                      className={`font-medium ${
-                        darkMode ? "text-white" : "text-gray-800"
-                      }`}
-                    >
-                      {userData?.coping_mechanisms?.join(", ") ||
-                        "Not specified"}
-                    </p>
-                  </div>
-                  <div>
-                    <p
-                      className={`text-sm ${
-                        darkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Favorite Music Genres
-                    </p>
-                    <p
-                      className={`font-medium ${
-                        darkMode ? "text-white" : "text-gray-800"
-                      }`}
-                    >
-                      {userData?.music_genres?.join(", ") || "Not specified"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+{activeSection === 'profile' && (
+  <div className="p-8 max-w-4xl mx-auto">
+    <h2 className={`text-3xl font-bold mb-8 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+      Your Dashboard
+    </h2>
 
-          {activeSection === "settings" && (
-            <div className="p-6 max-w-2xl mx-auto">
-              <h2
-                className={`text-2xl font-semibold mb-6 ${
-                  darkMode ? "text-white" : "text-gray-800"
-                }`}
-              >
-                Settings
-              </h2>
-              <div
-                className={`p-6 rounded-lg ${
-                  darkMode ? "bg-gray-800" : "bg-white"
-                } shadow-md`}
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p
-                        className={`font-medium ${
-                          darkMode ? "text-white" : "text-gray-800"
-                        }`}
-                      >
-                        Dark Mode
-                      </p>
-                      <p
-                        className={`text-sm ${
-                          darkMode ? "text-gray-400" : "text-gray-600"
-                        }`}
-                      >
-                        Switch between light and dark themes
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setDarkMode(!darkMode)}
-                      className={`px-4 py-2 rounded-lg ${
-                        darkMode
-                          ? "bg-violet-600 text-white"
-                          : "bg-violet-500 text-white"
-                      }`}
-                    >
-                      {darkMode ? "Switch to Light" : "Switch to Dark"}
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p
-                        className={`font-medium ${
-                          darkMode ? "text-white" : "text-gray-800"
-                        }`}
-                      >
-                        Log Out
-                      </p>
-                      <p
-                        className={`text-sm ${
-                          darkMode ? "text-gray-400" : "text-gray-600"
-                        }`}
-                      >
-                        Sign out of your account
-                      </p>
-                    </div>
-                    <button
-                      className={`px-4 py-2 rounded-lg ${
-                        darkMode
-                          ? "bg-red-600 text-white hover:bg-red-700"
-                          : "bg-red-500 text-white hover:bg-red-600"
-                      }`}
-                    >
-                      Log Out
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+    {/* Profile Section */}
+    <div className={`p-8 rounded-lg mb-8 ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className={`text-2xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+          Your Profile
+        </h3>
+        <button
+          className={`px-4 py-2 rounded-lg ${darkMode ? 'bg-violet-600 hover:bg-violet-700' : 'bg-violet-500 hover:bg-violet-600'} text-white`}
+        >
+          Edit Profile
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-6">
+          <div>
+            <p className={`text-md font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Profession</p>
+            <p className={`text-xl font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              {userData?.profession || 'Not specified'}
+            </p>
+          </div>
+
+          <div>
+            <p className={`text-md font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Age Range</p>
+            <p className={`text-xl font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              {userData?.age || 'Not specified'}
+            </p>
+          </div>
+
+          <div>
+            <p className={`text-md font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Gender</p>
+            <p className={`text-xl font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              {userData?.gender || 'Not specified'}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <p className={`text-md font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Coping Mechanisms
+            </p>
+            <p className={`text-xl font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              {userData?.coping_mechanisms?.join(', ') || 'Not specified'}
+            </p>
+          </div>
+
+          <div>
+            <p className={`text-md font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Favorite Music Genres
+            </p>
+            <p className={`text-xl font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              {userData?.music_genres?.join(', ') || 'Not specified'}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Settings Section */}
+    <div className={`p-8 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
+      <h3 className={`text-2xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+        Settings
+      </h3>
+
+      <div className="space-y-6">
+        <div className="flex items-center justify-between border-b pb-4 border-opacity-20 border-gray-500">
+          <div>
+            <p className={`font-medium text-xl ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              Dark Mode
+            </p>
+            <p className={`text-md ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Switch between light and dark themes
+            </p>
+          </div>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className={`px-5 py-2 rounded-lg ${darkMode ? 'bg-violet-600 hover:bg-violet-700' : 'bg-violet-500 hover:bg-violet-600'} text-white`}
+          >
+            {darkMode ? 'Switch to Light' : 'Switch to Dark'}
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between pt-2">
+          <div>
+            <p className={`font-medium text-xl ${darkMode ? 'text-white' : 'text-gray-800'}`} onClick={handlelogout}>
+              Log Out
+            </p>
+            <p className={`text-md ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Sign out of your account
+            </p>
+          </div>
+          <button
+            className={`px-5 py-2 rounded-lg ${darkMode ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'} text-white`}
+          >
+            Log Out
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+       
         </div>
       </div>
     </div>
